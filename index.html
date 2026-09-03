@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>For Her — A Liquid OS Wish</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,600&family=Poppins:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   CONFIG-DRIVEN BIRTHDAY EXPERIENCE
+   Edit values inside the CONFIG object near the bottom <script>
+   to personalize: PIN, name, date, quiz, WhatsApp number, photos,
+   song file, and the surprise-box password + secret contents.
+   ============================================================ */
+
+:root{
+  --void:#07070b;
+  --void-2:#0d0d14;
+  --glass: rgba(255,255,255,0.06);
+  --glass-border: rgba(255,255,255,0.14);
+  --heart-core:#38bdf8;
+  --heart-deep:#0c4a6e;
+  --heart-shine:#e0f7ff;
+  --pink:#ff5d8f;
+  --gold:#ffd166;
+  --text-hi:#f5f2f0;
+  --text-lo:#a8a4b3;
+  --serif:'Playfair Display', serif;
+  --sans:'Poppins', sans-serif;
+  --mono:'JetBrains Mono', monospace;
+}
+
+*{box-sizing:border-box; margin:0; padding:0;}
+html{
+  scroll-behavior:smooth;
+  overflow-x:hidden;
+  max-width:100%;
+}
+body{
+  background:var(--void);
+  color:var(--text-hi);
+  font-family:var(--sans);
+  overflow-x:hidden;
+  max-width:100%;
+  min-height:100vh;
+  min-height:100dvh;
+  touch-action: pan-y;
+}
+::selection{ background:var(--heart-core); color:white; }
+
+.ambient{
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(ellipse 60% 40% at 50% 0%, rgba(56,189,248,0.10), transparent 60%),
+    radial-gradient(ellipse 50% 30% at 80% 100%, rgba(255,93,143,0.08), transparent 60%);
+}
+
+/* ---------- scroll snap sections ---------- */
+.stage{ position:relative; z-index:1; }
+section{
+  min-height:100vh;
+  min-height:100dvh;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  padding: 6vh 6vw;
+  position:relative;
+}
+
+/* ============ LOCK SCREEN ============ */
+#lock{
+  position:fixed; inset:0; z-index:50;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background:
+    radial-gradient(circle at 50% 20%, rgba(255,93,143,0.16), transparent 55%),
+    linear-gradient(180deg, #0a0a10 0%, #050507 100%);
+  transition: opacity 0.9s ease, filter 0.9s ease, visibility 0.9s;
+}
+#lock.unlocked{ opacity:0; filter: blur(20px); visibility:hidden; pointer-events:none; }
+
+.lock-eyebrow{
+  font-family:var(--mono); letter-spacing:0.35em; text-transform:uppercase;
+  font-size:11px; color:var(--pink); margin-bottom:18px; opacity:0.85;
+}
+.lock-title{
+  font-family:var(--serif); font-style:italic; font-weight:600;
+  font-size:clamp(22px,4vw,30px); color:var(--text-hi); margin-bottom:34px; text-align:center;
+}
+.pin-dots{ display:flex; gap:16px; margin-bottom:38px; height:16px; }
+.pin-dot{
+  width:14px; height:14px; border-radius:50%;
+  border:1.5px solid var(--glass-border);
+  background:transparent; transition: all 0.25s ease;
+}
+.pin-dot.filled{ background:var(--heart-core); border-color:var(--heart-core); box-shadow:0 0 14px rgba(255,23,68,0.7); }
+.pin-dot.shake{ animation: dotshake 0.5s; }
+@keyframes dotshake{
+  10%,90%{ transform: translateX(-1px); }
+  20%,80%{ transform: translateX(2px); }
+  30%,50%,70%{ transform: translateX(-5px); }
+  40%,60%{ transform: translateX(5px); }
+}
+
+.keypad{
+  display:grid; grid-template-columns:repeat(3, 74px); gap:16px;
+}
+.key{
+  position:relative; width:74px; height:74px; border-radius:26px;
+  border:1px solid var(--glass-border);
+  background: linear-gradient(160deg, rgba(255,255,255,0.10), rgba(255,255,255,0.02));
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  color:var(--text-hi); font-family:var(--mono); font-size:22px; font-weight:600;
+  display:flex; align-items:center; justify-content:center;
+  cursor:pointer; user-select:none;
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.25), 0 8px 20px rgba(0,0,0,0.35);
+  transition: transform 0.12s ease, background 0.2s ease;
+}
+.key svg{ position:absolute; top:6px; right:8px; width:12px; height:12px; opacity:0.55; }
+.key:active, .key.pressed{
+  transform: scale(0.9);
+  background: linear-gradient(160deg, rgba(255,93,143,0.35), rgba(255,23,68,0.15));
+}
+.key.ghost{ visibility:hidden; }
+.key.func{ font-size:13px; color:var(--text-lo); }
+
+.lock-hint{ margin-top:28px; font-size:12px; color:var(--text-lo); font-family:var(--mono); letter-spacing:0.05em; }
+
+/* ============ HERO / HEART ============ */
+#hero{ perspective: 1200px; }
+.hero-eyebrow{
+  font-family:var(--mono); letter-spacing:0.4em; text-transform:uppercase;
+  font-size:11px; color:var(--pink); margin-bottom:10px;
+}
+.heart-wrap{
+  width:min(58vw, 340px); aspect-ratio:1/0.92;
+  transform-style:preserve-3d;
+  margin: 18px 0 8px 0;
+  animation: breathe 2.6s ease-in-out infinite;
+}
+@keyframes breathe{
+  0%{ transform: scale(0.94) rotateY(var(--scrollY,0deg)); }
+  22%{ transform: scale(1.05) rotateY(var(--scrollY,0deg)); }
+  35%{ transform: scale(0.99) rotateY(var(--scrollY,0deg)); }
+  55%{ transform: scale(1.02) rotateY(var(--scrollY,0deg)); }
+  100%{ transform: scale(0.94) rotateY(var(--scrollY,0deg)); }
+}
+.heart{
+  position:relative; width:100%; height:100%;
+  filter: drop-shadow(0 30px 60px rgba(56,189,248,0.45));
+}
+.heart::before, .heart::after{
+  content:""; position:absolute; width:52%; height:80%; top:0;
+  background: radial-gradient(circle at 35% 30%, var(--heart-shine) 0%, var(--heart-core) 42%, var(--heart-deep) 100%);
+  border-radius:50% 50% 0 0;
+}
+.heart::before{ left:50%; transform:rotate(-45deg); transform-origin:0 100%; }
+.heart::after{ left:0; transform:rotate(45deg); transform-origin:100% 100%; }
+.heart-sheen{
+  position:absolute; top:18%; left:28%; width:18%; height:14%;
+  background: rgba(255,255,255,0.55); border-radius:50%; filter: blur(6px);
+  transform: rotate(-20deg);
+}
+.pulse-line{ font-family:var(--mono); font-size:11px; color:var(--text-lo); letter-spacing:0.2em; margin-top:6px; }
+
+.hero-wish{
+  max-width:600px; text-align:center; margin-top:26px;
+}
+.hero-wish h1{
+  font-family:var(--serif); font-weight:700; font-style:italic;
+  font-size:clamp(28px,5vw,44px); line-height:1.25;
+  background: linear-gradient(180deg, #fff, #ffd6de);
+  -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.hero-wish p{ color:var(--text-lo); margin-top:16px; font-size:15px; line-height:1.7; }
+.scroll-cue{ margin-top:44px; font-family:var(--mono); font-size:11px; letter-spacing:0.3em; color:var(--text-lo); animation: bob 2s ease-in-out infinite; }
+@keyframes bob{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(8px);} }
+
+/* ============ SHARED SECTION CHROME ============ */
+.eyebrow{
+  font-family:var(--mono); letter-spacing:0.35em; text-transform:uppercase;
+  font-size:11px; color:var(--pink); margin-bottom:14px;
+}
+.section-title{
+  font-family:var(--serif); font-weight:600; font-style:italic;
+  font-size:clamp(24px,4vw,36px); margin-bottom:10px; text-align:center;
+}
+.section-sub{ color:var(--text-lo); font-size:14px; text-align:center; max-width:520px; margin-bottom:44px; }
+
+.glass-panel{
+  background:var(--glass);
+  border:1px solid var(--glass-border);
+  border-radius:24px;
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.12), 0 20px 50px rgba(0,0,0,0.35);
+}
+
+/* ============ MEMORIES — 3D COVERFLOW ============ */
+.gallery{
+  position:relative; width:min(92vw, 1000px); height:340px;
+  display:flex; align-items:center; justify-content:center;
+  perspective: 1200px;
+  overflow:hidden;
+}
+.gallery-track{
+  position:relative; width:100%; height:100%;
+}
+.photo-card{
+  position:absolute; top:50%; left:50%;
+  width:230px; height:290px; margin:-145px 0 0 -115px;
+  border-radius:20px;
+  display:flex; flex-direction:column; justify-content:flex-end;
+  padding:16px; overflow:hidden; cursor:pointer;
+  background-size:cover; background-position:center;
+  border:1px solid var(--glass-border);
+  transition: transform 0.7s cubic-bezier(.6,.05,.25,1), opacity 0.7s ease, filter 0.7s ease;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+}
+.photo-card .veil{
+  position:absolute; inset:0;
+  background:linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.75));
+}
+.photo-card .cap{ position:relative; font-size:13px; color:#fff; font-weight:500; }
+.photo-card.placeholder{
+  align-items:center; justify-content:center;
+  background: linear-gradient(160deg, rgba(255,93,143,0.14), rgba(255,255,255,0.03));
+  color:var(--text-lo); font-family:var(--mono); font-size:11px; text-align:center; gap:8px;
+}
+.gallery-dots{ display:flex; gap:8px; justify-content:center; margin-top:18px; }
+.gallery-dot{
+  width:7px; height:7px; border-radius:50%; background:var(--glass-border);
+  cursor:pointer; transition: all 0.3s ease;
+}
+.gallery-dot.active{ background:var(--pink); width:20px; border-radius:5px; }
+
+/* ============ QUIZ ============ */
+.quiz-box{ width:min(92vw,480px); padding:36px 30px; text-align:center; }
+.quiz-q{ font-size:17px; font-weight:500; margin-bottom:26px; line-height:1.5; }
+.quiz-opt{
+  display:block; width:100%; text-align:left; padding:14px 18px; margin-bottom:12px;
+  border-radius:14px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.03);
+  color:var(--text-hi); font-family:var(--sans); font-size:14px; cursor:pointer; transition: all 0.2s ease;
+}
+.quiz-opt:hover{ background:rgba(255,93,143,0.12); border-color:var(--pink); }
+.quiz-opt.correct{ background:rgba(90,220,150,0.18); border-color:#5adc96; }
+.quiz-opt.wrong{ background:rgba(255,60,60,0.18); border-color:#ff6b6b; }
+.bouquet{ font-size:48px; margin-top:10px; display:none; animation: pop 0.6s ease; }
+@keyframes pop{ 0%{ transform:scale(0); } 60%{ transform:scale(1.2); } 100%{ transform:scale(1); } }
+.quiz-msg{ margin-top:14px; font-size:13px; color:var(--text-lo); min-height:18px; }
+
+/* ============ COUNTDOWN ============ */
+.countdown-ring{ width:min(80vw,360px); padding:44px 30px; text-align:center; }
+.timer{
+  display:flex; gap:18px; justify-content:center; margin: 20px 0 10px 0; font-family:var(--mono);
+}
+.timer .unit{ display:flex; flex-direction:column; align-items:center; }
+.timer .num{ font-size:clamp(28px,6vw,42px); font-weight:600; color:var(--gold); }
+.timer .lab{ font-size:10px; letter-spacing:0.2em; color:var(--text-lo); margin-top:4px; }
+.timer-status{ font-family:var(--mono); font-size:12px; color:var(--text-lo); margin-top:14px; }
+
+/* ============ SURPRISE BOX ============ */
+.box-wrap{ width:min(92vw,460px); text-align:center; padding:40px 30px; }
+.box-icon{ font-size:44px; margin-bottom:12px; filter: drop-shadow(0 6px 14px rgba(255,23,68,0.5)); }
+.box-question{ font-size:15px; margin: 14px 0 18px 0; color:var(--text-hi); }
+.pass-input{
+  width:100%; padding:14px 16px; border-radius:14px; border:1px solid var(--glass-border);
+  background:rgba(0,0,0,0.25); color:var(--text-hi); font-family:var(--mono); font-size:14px;
+  margin-bottom:14px; outline:none;
+}
+.pass-input:focus{ border-color:var(--pink); }
+.btn{
+  padding:13px 26px; border-radius:999px; border:none; cursor:pointer;
+  background: linear-gradient(120deg, var(--heart-core), var(--pink));
+  color:white; font-family:var(--sans); font-weight:500; font-size:14px;
+  box-shadow: 0 10px 26px rgba(255,23,68,0.35);
+  transition: transform 0.15s ease;
+}
+.btn:hover{ transform: translateY(-2px); }
+.btn.ghost{ background:transparent; border:1px solid var(--glass-border); box-shadow:none; }
+.box-err{ font-size:12px; color:#ff8a8a; min-height:16px; margin-top:-4px; margin-bottom:10px; font-family:var(--mono); }
+
+.reveal{ display:none; margin-top:22px; text-align:left; }
+.reveal .msg-item{
+  background:rgba(255,255,255,0.04); border:1px solid var(--glass-border);
+  border-radius:14px; padding:14px 16px; margin-bottom:12px; font-size:14px; line-height:1.6;
+}
+.reveal .msg-tag{ font-family:var(--mono); font-size:10px; color:var(--pink); letter-spacing:0.15em; display:block; margin-bottom:6px; }
+
+/* ============ SECRET VIDEO BOX ============ */
+.secret-wrap{ width:min(92vw,460px); text-align:center; padding:40px 30px; }
+.secret-icon{ font-size:44px; margin-bottom:12px; filter: drop-shadow(0 6px 14px rgba(56,189,248,0.5)); }
+.secret-question{ font-size:15px; margin: 14px 0 18px 0; color:var(--text-hi); }
+.secret-video{ width:100%; border-radius:16px; margin-top:18px; display:none; }
+
+/* ============ SONG ============ */
+.song-box{ width:min(92vw,440px); padding:36px 30px; text-align:center; }
+audio{ width:100%; margin-top:16px; }
+
+/* ============ THANK YOU ============ */
+.ty-box{ width:min(92vw,460px); padding:38px 30px; text-align:center; }
+textarea{
+  width:100%; min-height:110px; margin-top:16px; padding:14px 16px; border-radius:16px;
+  border:1px solid var(--glass-border); background:rgba(0,0,0,0.2); color:var(--text-hi);
+  font-family:var(--sans); font-size:14px; resize:vertical; outline:none;
+}
+textarea:focus{ border-color:var(--pink); }
+.ty-sent{ display:none; margin-top:16px; color:#5adc96; font-family:var(--mono); font-size:13px; }
+
+footer{ text-align:center; padding:40px 20px 60px; color:var(--text-lo); font-family:var(--mono); font-size:11px; letter-spacing:0.1em; }
+
+/* confetti */
+.confetti-piece{ position:fixed; top:-20px; z-index:80; pointer-events:none; border-radius:2px; }
+
+@media (max-width:420px){
+  .keypad{ grid-template-columns:repeat(3, 62px); gap:12px; }
+  .key{ width:62px; height:62px; border-radius:22px; font-size:19px; }
+}
+</style>
+</head>
+<body>
+
+<div class="ambient"></div>
+
+<!-- ============ LOCK SCREEN ============ -->
+<div id="lock">
+  <div class="lock-eyebrow">Liquid OS · Secure Entry</div>
+  <div class="lock-title" id="lockTitle">Enter the pin only you know</div>
+  <div class="pin-dots" id="pinDots"></div>
+  <div class="keypad" id="keypad"></div>
+  <div class="lock-hint">Tap the heart keys to unlock</div>
+</div>
+
+<!-- ============ MAIN EXPERIENCE ============ -->
+<div class="stage">
+
+  <section id="hero">
+    <div class="hero-eyebrow">A wish, unlocked</div>
+    <div class="heart-wrap" id="heartWrap">
+      <div class="heart"><div class="heart-sheen"></div></div>
+    </div>
+    <div class="pulse-line" id="pulseLine">♥ ‑‑ · ‑‑ · beating for you</div>
+    <div class="hero-wish">
+      <h1 id="wishTitle">Happy Birthday, My Love</h1>
+      <p id="wishMessage">Every scroll on this page is a small piece of how much you mean to me. Keep going — there's more waiting for you.</p>
+    </div>
+    <div class="scroll-cue">↓ scroll ↓</div>
+  </section>
+
+  <section id="memories">
+    <div class="eyebrow">Memories</div>
+    <div class="section-title">Us, in moments</div>
+    <div class="section-sub">A few frames from our story so far.</div>
+    <div class="gallery" id="gallery"></div>
+    <div class="gallery-dots" id="galleryDots"></div>
+  </section>
+
+  <section id="quiz">
+    <div class="eyebrow">One question</div>
+    <div class="section-title">Prove you know us</div>
+    <div class="glass-panel quiz-box">
+      <div class="quiz-q" id="quizQ">Loading question…</div>
+      <div id="quizOptions"></div>
+      <div class="quiz-msg" id="quizMsg"></div>
+      <div class="bouquet" id="bouquet">💐</div>
+    </div>
+  </section>
+
+  <section id="countdown">
+    <div class="eyebrow">Almost time</div>
+    <div class="section-title">The surprise unlocks soon</div>
+    <div class="glass-panel countdown-ring">
+      <div class="timer" id="timer">
+        <div class="unit"><div class="num" id="tD">--</div><div class="lab">days</div></div>
+        <div class="unit"><div class="num" id="tH">--</div><div class="lab">hrs</div></div>
+        <div class="unit"><div class="num" id="tM">--</div><div class="lab">min</div></div>
+        <div class="unit"><div class="num" id="tS">--</div><div class="lab">sec</div></div>
+      </div>
+      <div class="timer-status" id="timerStatus">counting down…</div>
+    </div>
+  </section>
+
+  <section id="surprise">
+    <div class="eyebrow">Sealed &amp; encrypted</div>
+    <div class="section-title">Your surprise box</div>
+    <div class="glass-panel box-wrap">
+      <div class="box-icon">🔒</div>
+      <div class="box-question" id="boxQuestion">Answer to unlock…</div>
+      <input class="pass-input" id="boxAnswer" type="text" placeholder="Type your answer" autocomplete="off">
+      <div class="box-err" id="boxErr"></div>
+      <button class="btn" id="unlockBoxBtn">Decrypt &amp; Open</button>
+      <div class="reveal" id="boxReveal"></div>
+    </div>
+  </section>
+
+  <section id="secretbox">
+    <div class="eyebrow">One more secret</div>
+    <div class="section-title">A hidden little box</div>
+    <div class="glass-panel secret-wrap">
+      <div class="secret-icon">🎁</div>
+      <div class="secret-question" id="secretQuestion">Answer to unlock…</div>
+      <input class="pass-input" id="secretAnswerInput" type="text" placeholder="Type your answer" autocomplete="off">
+      <div class="box-err" id="secretErr"></div>
+      <button class="btn" id="unlockSecretBtn">Unlock</button>
+      <video class="secret-video" id="secretVideo" controls playsinline>
+        <source src="assets/secret-video.mp4" type="video/mp4">
+        Your browser can't play this video.
+      </video>
+    </div>
+  </section>
+
+  <section id="song">
+    <div class="eyebrow">One more thing</div>
+    <div class="section-title">A song, just for you</div>
+    <div class="glass-panel song-box">
+      <div style="font-size:34px;">🎶</div>
+      <p style="color:var(--text-lo); font-size:13px; margin-top:8px;">Press play whenever you're ready.</p>
+      <audio controls id="wishSong">
+        <source src="assets/song.mp3" type="audio/mpeg">
+        Your browser can't play this audio.
+      </audio>
+    </div>
+  </section>
+
+  <section id="thanks">
+    <div class="eyebrow">Last step</div>
+    <div class="section-title">Send him a note back</div>
+    <div class="glass-panel ty-box">
+      <p style="color:var(--text-lo); font-size:13px;">Write whatever's in your heart — it'll go straight to him on WhatsApp.</p>
+      <textarea id="tyText" placeholder="My thank-you note…"></textarea>
+      <div style="margin-top:16px;">
+        <button class="btn" id="sendTyBtn">Send on WhatsApp 💌</button>
+      </div>
+      <div class="ty-sent" id="tySent">Opening WhatsApp…</div>
+    </div>
+  </section>
+
+  <footer>built with ♥ · liquid os edition</footer>
+</div>
+
+<script>
+/* ============================================================
+   CONFIG — personalize everything here
+   ============================================================ */
+const CONFIG = {
+  // 4-6 digit PIN to unlock the site
+  pin: "1428",
+
+  // Names used in copy
+  fianceeName: "My Love",
+  yourName: "Saran",
+
+  // Hero wish
+  wishTitle: "Happy Birthday, My Love",
+  wishMessage: "Every scroll on this page is a small piece of how much you mean to me. Keep going — there's more waiting for you.",
+
+  // WhatsApp number to receive her thank-you note, digits only with country code (no + or spaces)
+  whatsappNumber: "919999999999",
+
+  // Countdown target — the exact moment the surprise box unlocks (local time, ISO format)
+  targetDateTime: "2026-09-01T00:00:00",
+  // When the countdown section becomes "live" / visually active
+  timerActiveFrom: "2026-08-31T23:00:00",
+
+  // Photo memories — replace src with your own hosted image paths (e.g. assets/photo1.jpg)
+  photos: [
+    { src: "", caption: "Add photo 1" },
+    { src: "", caption: "Add photo 2" },
+    { src: "", caption: "Add photo 3" },
+    { src: "", caption: "Add photo 4" }
+  ],
+
+  // Quiz — one question about the two of you
+  quiz: {
+    question: "Where did we first meet?",
+    options: ["College canteen", "A mutual friend's party", "Online", "On a train"],
+    correctIndex: 1,
+    correctMsg: "Exactly right. Of course you remember.",
+    wrongMsg: "Not quite — try again, you know this one."
+  },
+
+  // Surprise box security question (this is what gates + derives the encryption key)
+  surpriseQuestion: "What do I call you when no one's around?",
+  surpriseAnswer: "jaanu",   // case-insensitive; this is also the decryption key
+
+  // Secret contents revealed after the box is decrypted — plain text is fine here,
+  // it is encrypted in the browser using the answer above before being shown.
+  surpriseMessages: [
+    { tag: "message", text: "Replace this with your real hidden message for her." },
+    { tag: "memory", text: "Replace this with another note, a screenshot caption, or a video link." }
+  ],
+
+  // ---- Extra secret box (separate from the surprise box above) ----
+  // This one gates a hidden video. Drop your video file at assets/secret-video.mp4
+  secretQuestion: "What do I call you when no one's around?",
+  secretAnswer: "jaanu"   // case-insensitive
+};
+
+/* ============================================================
+   LOCK SCREEN
+   ============================================================ */
+(function(){
+  const dotsWrap = document.getElementById('pinDots');
+  const keypad = document.getElementById('keypad');
+  const lock = document.getElementById('lock');
+  const pinLen = CONFIG.pin.length;
+  let entered = "";
+
+  for(let i=0;i<pinLen;i++){
+    const d = document.createElement('div');
+    d.className = 'pin-dot';
+    dotsWrap.appendChild(d);
+  }
+
+  const heartIcon = `<svg viewBox="0 0 24 24" fill="#ff5d8f"><path d="M12 21s-7.5-4.6-10-9.3C.5 8.1 2.4 4.8 5.8 4.3c2-.3 3.8.7 4.9 2.3.9-1.6 2.9-2.6 4.9-2.3 3.4.5 5.3 3.8 3.8 7.4C19.5 16.4 12 21 12 21z"/></svg>`;
+  const keys = ['1','2','3','4','5','6','7','8','9','','0','back'];
+  keys.forEach(k=>{
+    const el = document.createElement('div');
+    if(k===''){ el.className='key ghost'; }
+    else if(k==='back'){ el.className='key func'; el.textContent='⌫'; el.onclick=()=>onKey('back'); }
+    else{ el.className='key'; el.innerHTML = k + heartIcon; el.onclick=()=>onKey(k); }
+    keypad.appendChild(el);
+  });
+
+  function renderDots(){
+    const dots = dotsWrap.children;
+    for(let i=0;i<dots.length;i++){
+      dots[i].classList.toggle('filled', i < entered.length);
+    }
+  }
+
+  function shakeFail(){
+    [...dotsWrap.children].forEach(d=>d.classList.add('shake'));
+    setTimeout(()=>{
+      [...dotsWrap.children].forEach(d=>d.classList.remove('shake'));
+      entered = "";
+      renderDots();
+    }, 500);
+  }
+
+  function onKey(k){
+    if(k==='back'){ entered = entered.slice(0,-1); renderDots(); return; }
+    if(entered.length >= pinLen) return;
+    entered += k;
+    renderDots();
+    if(entered.length === pinLen){
+      if(entered === CONFIG.pin){
+        setTimeout(()=>{ lock.classList.add('unlocked'); }, 250);
+      } else {
+        setTimeout(shakeFail, 150);
+      }
+    }
+  }
+
+  document.addEventListener('keydown', (e)=>{
+    if(lock.classList.contains('unlocked')) return;
+    if(/^[0-9]$/.test(e.key)) onKey(e.key);
+    if(e.key === 'Backspace') onKey('back');
+  });
+})();
+
+/* ============================================================
+   HERO COPY + HEART SCROLL PARALLAX
+   ============================================================ */
+document.getElementById('wishTitle').textContent = CONFIG.wishTitle;
+document.getElementById('wishMessage').textContent = CONFIG.wishMessage;
+
+(function(){
+  const wrap = document.getElementById('heartWrap');
+  window.addEventListener('scroll', ()=>{
+    const deg = Math.min(window.scrollY / 6, 360);
+    wrap.style.setProperty('--scrollY', deg + 'deg');
+  }, { passive:true });
+})();
+
+/* ============================================================
+   MEMORIES GALLERY
+   ============================================================ */
+(function(){
+  const gallery = document.getElementById('gallery');
+  const track = document.createElement('div');
+  track.className = 'gallery-track';
+  const dotsWrap = document.getElementById('galleryDots');
+
+  const cards = CONFIG.photos.map(p=>{
+    const card = document.createElement('div');
+    if(p.src){
+      card.className = 'photo-card';
+      card.style.backgroundImage = `url(${p.src})`;
+      card.innerHTML = `<div class="veil"></div><div class="cap">${p.caption||''}</div>`;
+    } else {
+      card.className = 'photo-card placeholder';
+      card.innerHTML = `<div>📷</div><div>${p.caption||'Add a photo'}</div>`;
+    }
+    track.appendChild(card);
+    return card;
+  });
+  gallery.appendChild(track);
+
+  const count = cards.length;
+  const dots = CONFIG.photos.map((_, i)=>{
+    const d = document.createElement('div');
+    d.className = 'gallery-dot';
+    d.onclick = ()=> goTo(i);
+    dotsWrap.appendChild(d);
+    return d;
+  });
+
+  let current = 0;
+
+  function render(){
+    cards.forEach((card, i)=>{
+      // shortest signed distance from current, wrapping around
+      let delta = i - current;
+      if(delta > count/2) delta -= count;
+      if(delta < -count/2) delta += count;
+
+      const abs = Math.abs(delta);
+      let x, scale, opacity, z, blur, rotateY;
+
+      if(abs === 0){
+        x = 0; scale = 1; opacity = 1; z = 10; blur = 0; rotateY = 0;
+      } else if(abs === 1){
+        x = delta * 170; scale = 0.8; opacity = 0.75; z = 8; blur = 1; rotateY = delta * -25;
+      } else if(abs === 2){
+        x = delta * 260; scale = 0.62; opacity = 0.4; z = 6; blur = 2; rotateY = delta * -30;
+      } else {
+        x = delta * 300; scale = 0.5; opacity = 0; z = 1; blur = 3; rotateY = delta * -30;
+      }
+
+      card.style.transform = `translateX(${x}px) scale(${scale}) rotateY(${rotateY}deg)`;
+      card.style.opacity = opacity;
+      card.style.zIndex = z;
+      card.style.filter = `brightness(${abs===0?1:0.65}) blur(${blur}px)`;
+      card.style.pointerEvents = abs > 2 ? 'none' : 'auto';
+    });
+    dots.forEach((d,i)=> d.classList.toggle('active', i===current));
+  }
+
+  function goTo(i){
+    current = ((i % count) + count) % count;
+    render();
+  }
+
+  cards.forEach((card,i)=>{ card.addEventListener('click', ()=> goTo(i)); });
+
+  render();
+  if(count > 1){
+    setInterval(()=> goTo(current+1), 3200);
+  }
+})();
+
+/* ============================================================
+   QUIZ
+   ============================================================ */
+(function(){
+  const qEl = document.getElementById('quizQ');
+  const optsEl = document.getElementById('quizOptions');
+  const msgEl = document.getElementById('quizMsg');
+  const bouquet = document.getElementById('bouquet');
+  qEl.textContent = CONFIG.quiz.question;
+  let answered = false;
+
+  CONFIG.quiz.options.forEach((opt, idx)=>{
+    const b = document.createElement('button');
+    b.className = 'quiz-opt';
+    b.textContent = opt;
+    b.onclick = ()=>{
+      if(answered) return;
+      if(idx === CONFIG.quiz.correctIndex){
+        answered = true;
+        b.classList.add('correct');
+        msgEl.textContent = CONFIG.quiz.correctMsg;
+        bouquet.style.display = 'block';
+      } else {
+        b.classList.add('wrong');
+        msgEl.textContent = CONFIG.quiz.wrongMsg;
+        setTimeout(()=>b.classList.remove('wrong'), 600);
+      }
+    };
+    optsEl.appendChild(b);
+  });
+})();
+
+/* ============================================================
+   COUNTDOWN
+   ============================================================ */
+(function(){
+  const target = new Date(CONFIG.targetDateTime).getTime();
+  const activeFrom = new Date(CONFIG.timerActiveFrom).getTime();
+  const tD=document.getElementById('tD'), tH=document.getElementById('tH'),
+        tM=document.getElementById('tM'), tS=document.getElementById('tS'),
+        status=document.getElementById('timerStatus');
+
+  function tick(){
+    const now = Date.now();
+    if(now < activeFrom){
+      status.textContent = "the countdown begins at 11:00 PM";
+      tD.textContent=tH.textContent=tM.textContent=tS.textContent="--";
+      return;
+    }
+    const diff = target - now;
+    if(diff <= 0){
+      tD.textContent=tH.textContent=tM.textContent=tS.textContent="00";
+      status.textContent = "it's time — the surprise box is open below ↓";
+      document.getElementById('unlockBoxBtn').dataset.timeReady = "1";
+      return;
+    }
+    document.getElementById('unlockBoxBtn').dataset.timeReady = "0";
+    const d = Math.floor(diff/86400000);
+    const h = Math.floor(diff%86400000/3600000);
+    const m = Math.floor(diff%3600000/60000);
+    const s = Math.floor(diff%60000/1000);
+    tD.textContent = String(d).padStart(2,'0');
+    tH.textContent = String(h).padStart(2,'0');
+    tM.textContent = String(m).padStart(2,'0');
+    tS.textContent = String(s).padStart(2,'0');
+    status.textContent = "counting down to your moment…";
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+
+/* ============================================================
+   SURPRISE BOX — real client-side AES-GCM encryption,
+   keyed by the answer to the security question (PBKDF2 derived)
+   ============================================================ */
+(function(){
+  document.getElementById('boxQuestion').textContent = CONFIG.surpriseQuestion;
+  const input = document.getElementById('boxAnswer');
+  const err = document.getElementById('boxErr');
+  const reveal = document.getElementById('boxReveal');
+  const btn = document.getElementById('unlockBoxBtn');
+
+  async function deriveKey(password){
+    const enc = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey(
+      'raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']
+    );
+    return crypto.subtle.deriveKey(
+      { name:'PBKDF2', salt: enc.encode('liquid-os-salt'), iterations: 100000, hash:'SHA-256' },
+      keyMaterial, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']
+    );
+  }
+
+  async function encryptText(plainText, password){
+    const key = await deriveKey(password);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const enc = new TextEncoder();
+    const cipher = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, enc.encode(plainText));
+    return { iv: Array.from(iv), data: Array.from(new Uint8Array(cipher)) };
+  }
+
+  async function decryptPayload(payload, password){
+    const key = await deriveKey(password);
+    const iv = new Uint8Array(payload.iv);
+    const data = new Uint8Array(payload.data);
+    const plain = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, data);
+    return new TextDecoder().decode(plain);
+  }
+
+  btn.addEventListener('click', async ()=>{
+    const answer = input.value.trim();
+    err.textContent = "";
+    if(!answer){ err.textContent = "Type an answer first."; return; }
+    if(answer.toLowerCase() !== CONFIG.surpriseAnswer.toLowerCase()){
+      err.textContent = "That's not it — think back to us.";
+      return;
+    }
+    btn.textContent = "Decrypting…";
+    try{
+      const items = [];
+      for(const m of CONFIG.surpriseMessages){
+        const payload = await encryptText(m.text, CONFIG.surpriseAnswer);
+        const decrypted = await decryptPayload(payload, answer);
+        items.push({ tag:m.tag, text:decrypted });
+      }
+      reveal.innerHTML = items.map(it =>
+        `<div class="msg-item"><span class="msg-tag">${it.tag.toUpperCase()}</span>${it.text}</div>`
+      ).join('');
+      reveal.style.display = 'block';
+      btn.style.display = 'none';
+      input.style.display = 'none';
+      launchConfetti();
+    } catch(e){
+      err.textContent = "Decryption failed — try the answer again.";
+    }
+    btn.textContent = "Decrypt & Open";
+  });
+})();
+
+/* ============================================================
+   EXTRA SECRET BOX — password-gated video reveal
+   ============================================================ */
+(function(){
+  document.getElementById('secretQuestion').textContent = CONFIG.secretQuestion;
+  const input = document.getElementById('secretAnswerInput');
+  const err = document.getElementById('secretErr');
+  const video = document.getElementById('secretVideo');
+  const btn = document.getElementById('unlockSecretBtn');
+
+  btn.addEventListener('click', ()=>{
+    const answer = input.value.trim();
+    err.textContent = "";
+    if(!answer){ err.textContent = "Type an answer first."; return; }
+    if(answer.toLowerCase() !== CONFIG.secretAnswer.toLowerCase()){
+      err.textContent = "That's not it — think back to us.";
+      return;
+    }
+    video.style.display = 'block';
+    btn.style.display = 'none';
+    input.style.display = 'none';
+    launchConfetti();
+    video.play().catch(()=>{});
+  });
+})();
+
+function launchConfetti(){
+  const colors = ['#ff1744','#ff5d8f','#ffd166','#ffc2cc'];
+  for(let i=0;i<60;i++){
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.left = Math.random()*100+'vw';
+    p.style.width = p.style.height = (6+Math.random()*6)+'px';
+    p.style.background = colors[Math.floor(Math.random()*colors.length)];
+    document.body.appendChild(p);
+    const duration = 2500 + Math.random()*1500;
+    p.animate([
+      { transform:'translateY(0) rotate(0deg)', opacity:1 },
+      { transform:`translateY(100vh) rotate(${360+Math.random()*360}deg)`, opacity:0.9 }
+    ], { duration, easing:'ease-in' });
+    setTimeout(()=>p.remove(), duration);
+  }
+}
+
+/* ============================================================
+   THANK YOU → WHATSAPP
+   ============================================================ */
+(function(){
+  const btn = document.getElementById('sendTyBtn');
+  const textEl = document.getElementById('tyText');
+  const sent = document.getElementById('tySent');
+  btn.addEventListener('click', ()=>{
+    const note = textEl.value.trim() || "Thank you for this. I love you. ❤️";
+    const url = `https://wa.me/${CONFIG.whatsappNumber}?text=${encodeURIComponent(note)}`;
+    sent.style.display = 'block';
+    window.open(url, '_blank');
+  });
+})();
+</script>
+</body>
+</html>

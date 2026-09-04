@@ -295,6 +295,23 @@ section{
 
 /* ============ SONG ============ */
 .song-box{ width:min(92vw,440px); padding:36px 30px; text-align:center; }
+.song-photo{
+  width:120px; height:120px; border-radius:50%; object-fit:cover;
+  cursor:pointer; border:3px solid var(--glass-border);
+  box-shadow:0 10px 30px rgba(0,0,0,0.4);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.song-photo:hover{ transform:scale(1.05); }
+.song-photo.playing{
+  border-color:var(--pink);
+  box-shadow:0 0 0 0 rgba(255,23,68,0.5);
+  animation: songpulse 1.6s ease-out infinite;
+}
+@keyframes songpulse{
+  0%{ box-shadow:0 0 0 0 rgba(255,23,68,0.45); }
+  70%{ box-shadow:0 0 0 18px rgba(255,23,68,0); }
+  100%{ box-shadow:0 0 0 0 rgba(255,23,68,0); }
+}
 audio{ width:100%; margin-top:16px; }
 
 /* ============ THANK YOU ============ */
@@ -413,9 +430,9 @@ footer{ text-align:center; padding:40px 20px 60px; color:var(--text-lo); font-fa
     <div class="eyebrow">One more thing</div>
     <div class="section-title">A song, just for you</div>
     <div class="glass-panel song-box">
-      <div style="font-size:34px;">🎶</div>
-      <p style="color:var(--text-lo); font-size:13px; margin-top:8px;">Press play whenever you're ready.</p>
-      <audio controls id="wishSong">
+      <img src="songphoto.jpg" alt="Play our song" id="songPhoto" class="song-photo">
+      <p style="color:var(--text-lo); font-size:13px; margin-top:14px;">Tap the photo to play.</p>
+      <audio id="wishSong">
         <source src="song.mp3" type="audio/mpeg">
         Your browser can't play this audio.
       </audio>
@@ -846,6 +863,24 @@ function launchConfetti(){
     sent.style.display = 'block';
     window.open(url, '_blank');
   });
+})();
+/* ============================================================
+   SONG PHOTO → PLAY/PAUSE
+   ============================================================ */
+(function(){
+  const photo = document.getElementById('songPhoto');
+  const audio = document.getElementById('wishSong');
+  if(!photo || !audio) return;
+  photo.addEventListener('click', ()=>{
+    if(audio.paused){
+      audio.play().catch(()=>{});
+    } else {
+      audio.pause();
+    }
+  });
+  audio.addEventListener('play', ()=> photo.classList.add('playing'));
+  audio.addEventListener('pause', ()=> photo.classList.remove('playing'));
+  audio.addEventListener('ended', ()=> photo.classList.remove('playing'));
 })();
 </script>
 </body>

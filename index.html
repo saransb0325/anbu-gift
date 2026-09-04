@@ -316,13 +316,13 @@ section{
   100%{ box-shadow:0 10px 30px rgba(0,0,0,0.4), 0 0 0 0 rgba(255,23,68,0); }
 }
 .heart-wave{
-  display:flex; align-items:flex-end; justify-content:center;
-  gap:3px; height:80px; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  gap:3px; height:96px; cursor:pointer;
 }
 .heart-wave .bar{
-  width:4px; border-radius:3px;
-  background:linear-gradient(to top, var(--pink), #ff9fb4);
-  opacity:0.6; transform-origin:bottom;
+  width:5px; border-radius:3px;
+  background:linear-gradient(to bottom, var(--pink), #ff9fb4);
+  opacity:0.6;
   animation-name: barjitter;
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
@@ -331,7 +331,7 @@ section{
 }
 .song-row.playing .heart-wave .bar{ animation-play-state: running; opacity:1; }
 @keyframes barjitter{
-  0%,100%{ transform:scaleY(0.7); }
+  0%,100%{ transform:scaleY(0.75); }
   50%{ transform:scaleY(1); }
 }
 audio{ width:100%; margin-top:16px; }
@@ -901,8 +901,10 @@ function launchConfetti(){
   const heartWrap = document.getElementById('heartWave');
   if(!photo || !audio) return;
 
-  // heights (in px) tracing a heart silhouette, left half mirrored on the right
-  const heartHeights = [10,16,24,34,46,58,68,54,40,50,66,80,66,50,40,54,68,58,46,34,24,16,10];
+  // heights (px) — twin peaks with a center dip, tapering to thin edges.
+  // Bars are vertically centered (CSS align-items:center), so this shape
+  // mirrors above and below the midline, tracing a heart silhouette.
+  const heartHeights = [6,10,18,30,46,64,80,90,78,60,46,60,78,90,80,64,46,30,18,10,6];
 
   if(heartWrap){
     heartHeights.forEach((h)=>{

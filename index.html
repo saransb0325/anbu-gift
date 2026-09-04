@@ -293,46 +293,53 @@ section{
 .secret-question{ font-size:15px; margin: 14px 0 18px 0; color:var(--text-hi); }
 .secret-video{ width:100%; border-radius:16px; margin-top:18px; display:none; }
 
-/* ============ SONG ============ */
+/* ============ SONG — circular photo with radial sunburst ============ */
 .song-box{ width:min(92vw,460px); padding:36px 26px; text-align:center; }
 .song-row{
   display:flex; align-items:center; justify-content:center;
   gap:18px; flex-wrap:wrap;
 }
+.song-photo-wrap{
+  position:relative; width:180px; height:180px;
+  display:flex; align-items:center; justify-content:center;
+  margin:0 auto; cursor:pointer; flex-shrink:0;
+}
+/* This is the image the photo will be set from — swap the <img src="..."> below with your own picture. */
 .song-photo{
-  width:100px; height:100px; border-radius:50%; object-fit:cover;
-  cursor:pointer; border:3px solid var(--glass-border);
-  box-shadow:0 10px 30px rgba(0,0,0,0.4); flex-shrink:0;
+  position:relative; z-index:2;
+  width:104px; height:104px; border-radius:50%; object-fit:cover;
+  border:3px solid var(--void);
+  box-shadow:0 10px 30px rgba(0,0,0,0.45);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
-.song-row:hover .song-photo{ transform:scale(1.05); }
-.song-photo.playing{
-  border-color:var(--pink);
-  animation: songpulse 1.6s ease-out infinite;
-}
+.song-photo-wrap:hover .song-photo{ transform:scale(1.05); }
+.song-photo.playing{ animation: songpulse 1.6s ease-out infinite; }
 @keyframes songpulse{
-  0%{ box-shadow:0 10px 30px rgba(0,0,0,0.4), 0 0 0 0 rgba(255,23,68,0.45); }
-  70%{ box-shadow:0 10px 30px rgba(0,0,0,0.4), 0 0 0 18px rgba(255,23,68,0); }
-  100%{ box-shadow:0 10px 30px rgba(0,0,0,0.4), 0 0 0 0 rgba(255,23,68,0); }
+  0%{ box-shadow:0 10px 30px rgba(0,0,0,0.45), 0 0 0 0 rgba(255,23,68,0.45); }
+  70%{ box-shadow:0 10px 30px rgba(0,0,0,0.45), 0 0 0 18px rgba(255,23,68,0); }
+  100%{ box-shadow:0 10px 30px rgba(0,0,0,0.45), 0 0 0 0 rgba(255,23,68,0); }
 }
 .heart-wave{
-  display:flex; align-items:center; justify-content:center;
-  gap:3px; height:96px; cursor:pointer;
+  position:absolute; inset:0; z-index:1;
 }
 .heart-wave .bar{
-  width:5px; border-radius:3px;
-  background:linear-gradient(to bottom, var(--pink), #ff9fb4);
-  opacity:0.6;
-  animation-name: barjitter;
+  position:absolute; top:50%; left:50%;
+  width:3px; height:14px;
+  margin:-7px 0 0 -1.5px;
+  background:linear-gradient(to top, var(--pink), #fff);
+  border-radius:3px;
+  transform: rotate(var(--ang)) translateY(-58px);
+  opacity:0.55;
+  animation-name: spokepulse;
   animation-timing-function: ease-in-out;
   animation-iteration-count: infinite;
   animation-play-state: paused;
   transition: opacity 0.3s ease;
 }
 .song-row.playing .heart-wave .bar{ animation-play-state: running; opacity:1; }
-@keyframes barjitter{
-  0%,100%{ transform:scaleY(0.75); }
-  50%{ transform:scaleY(1); }
+@keyframes spokepulse{
+  0%,100%{ transform: rotate(var(--ang)) translateY(-58px) scaleY(0.7); }
+  50%{ transform: rotate(var(--ang)) translateY(-58px) scaleY(1.3); }
 }
 audio{ width:100%; margin-top:16px; }
 
@@ -455,8 +462,11 @@ footer{ text-align:center; padding:40px 20px 60px; color:var(--text-lo); font-fa
     <div class="section-title">A song, just for you</div>
     <div class="glass-panel song-box">
       <div class="song-row" id="songViz">
-        <img src="songphoto.jpg.jpeg" alt="Play our song" id="songPhoto" class="song-photo">
-        <div class="heart-wave" id="heartWave"></div>
+        <div class="song-photo-wrap">
+          <div class="heart-wave" id="heartWave"></div>
+          <!-- Replace songphoto.jpg.jpeg below with your own image path to set it as this photo -->
+          <img src="songphoto.jpg.jpeg" alt="Play our song" id="songPhoto" class="song-photo">
+        </div>
       </div>
       <p style="color:var(--text-lo); font-size:13px; margin-top:14px;">Tap the photo to play.</p>
       <audio id="wishSong">
@@ -901,22 +911,22 @@ function launchConfetti(){
   const heartWrap = document.getElementById('heartWave');
   if(!photo || !audio) return;
 
-  // heights (px) — twin peaks with a center dip, tapering to thin edges.
-  // Bars are vertically centered (CSS align-items:center), so this shape
-  // mirrors above and below the midline, tracing a heart silhouette.
-  const heartHeights = [6,10,18,30,46,64,80,90,78,60,46,60,78,90,80,64,46,30,18,10,6];
+  // Radial sunburst: evenly-spaced spokes rotated around the photo,
+  // each pulsing outward while the song plays — like a "trending audio" thumbnail.
+  const spokeCount = 32;
 
   if(heartWrap){
-    heartHeights.forEach((h)=>{
+    for(let i=0; i<spokeCount; i++){
       const bar = document.createElement('div');
       bar.className = 'bar';
-      bar.style.height = h + 'px';
+      const angle = (360 / spokeCount) * i;
+      bar.style.setProperty('--ang', angle + 'deg');
       const duration = (0.5 + Math.random()*0.6).toFixed(2);
       const delay = (Math.random()*0.5).toFixed(2);
       bar.style.animationDuration = `${duration}s`;
       bar.style.animationDelay = `${delay}s`;
       heartWrap.appendChild(bar);
-    });
+    }
     heartWrap.addEventListener('click', ()=>{
       if(audio.paused){ audio.play().catch(()=>{}); } else { audio.pause(); }
     });

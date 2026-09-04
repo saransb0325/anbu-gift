@@ -294,7 +294,20 @@ section{
 .secret-video{ width:100%; border-radius:16px; margin-top:18px; display:none; }
 
 /* ============ SONG — circular photo with radial sunburst ============ */
-.song-box{ width:min(92vw,460px); padding:36px 26px; text-align:center; }
+.song-box{
+  width:min(92vw,460px); padding:36px 26px; text-align:center;
+  position:relative; overflow:hidden;
+  /* Swap this URL for your own background photo */
+  background-image:url('song-bg.jpg');
+  background-size:cover;
+  background-position:center;
+}
+.song-box::before{
+  content:"";
+  position:absolute; inset:0; z-index:0;
+  background:linear-gradient(180deg, rgba(7,7,11,0.55), rgba(7,7,11,0.85));
+}
+.song-box > *{ position:relative; z-index:1; }
 .song-row{
   display:flex; align-items:center; justify-content:center;
   gap:18px; flex-wrap:wrap;

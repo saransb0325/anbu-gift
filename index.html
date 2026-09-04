@@ -285,6 +285,7 @@ section{
   border-radius:14px; padding:14px 16px; margin-bottom:12px; font-size:14px; line-height:1.6;
 }
 .reveal .msg-tag{ font-family:var(--mono); font-size:10px; color:var(--pink); letter-spacing:0.15em; display:block; margin-bottom:6px; }
+.reveal .msg-item img{ width:100%; border-radius:14px; margin-top:8px; display:block; }
 
 /* ============ SECRET VIDEO BOX ============ */
 .secret-wrap{ width:min(92vw,460px); text-align:center; padding:40px 30px; }
@@ -486,7 +487,7 @@ const CONFIG = {
   // it is encrypted in the browser using the answer above before being shown.
   surpriseMessages: [
     { tag: "message", text: "Enaku ellame ne thaan,enaku nu kedacha first person ne thaan,en mudhalum ne tha mudivum ne thaan." },
-    { tag: "memory", text: "Replace this with another note, a screenshot caption, or a video link." }
+    { tag: "memory", text: "<img src='memory1.jpg' alt='our memory'>Our first screenshot together 💙" }
   ],
 
   // ---- Extra secret box (separate from the surprise box above) ----

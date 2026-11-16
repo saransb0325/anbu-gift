@@ -1077,6 +1077,11 @@ footer{ text-align:center; padding:40px 20px 60px; color:var(--text-lo); font-fa
   <div class="lock-hint">Tap the heart keys to unlock</div>
 </div>
 
+<!-- ============ INTRO BACKGROUND MUSIC ============ -->
+<audio id="introBgm" loop preload="auto">
+  <source src="intro.mp3?v=2" type="audio/mpeg">
+</audio>
+
 <!-- ============ MAIN EXPERIENCE ============ -->
 <div class="stage">
 
@@ -1205,8 +1210,7 @@ const CONFIG_INTRO = {
     question: "Do you love me? 💗",
     pleadingEmoji: "🥺",
     yesBtn: "Yes 💗",
-    noBtn: "No",
-    playSongOnYes: true // Reuses song.mp3 softly on first user tap
+    noBtn: "No"
   },
   // Scene 3: Catch the butterflies
   scene3: {
@@ -1369,13 +1373,6 @@ const CONFIG_INTRO = {
   s2NoBtn.addEventListener('touchstart', runawayNo, { passive:false });
 
   s2YesBtn.addEventListener('click', ()=>{
-    if(CONFIG_INTRO.scene2.playSongOnYes){
-      const song = document.getElementById('wishSong');
-      if(song && song.paused){
-        song.volume = 0.5;
-        song.play().catch(()=>{});
-      }
-    }
     transitionToScene(3);
   });
 
@@ -1634,6 +1631,78 @@ const CONFIG = {
 };
 
 /* ============================================================
+   INTRO BACKGROUND MUSIC CONTROLLER
+   - Plays intro.mp3?v=2 on first PIN unlock (user gesture)
+   - Loops while scrolling through hero, memories, quiz
+   - Smoothly fades out over ~1 second when second PIN/password
+     prompt (#surprise section) appears, and pauses
+   ============================================================ */
+function playIntroBgm(){
+  const bgm = document.getElementById('introBgm');
+  if(!bgm) return;
+  bgm.volume = 0.5;
+  bgm.currentTime = 0;
+  delete bgm.dataset.faded;
+  bgm.play().catch(()=>{});
+}
+
+function fadeAndStopIntroBgm(){
+  const bgm = document.getElementById('introBgm');
+  if(!bgm || bgm.paused || bgm.dataset.faded === "1") return;
+  bgm.dataset.faded = "1";
+  const startVol = bgm.volume;
+  const startTime = performance.now();
+  const duration = 1000;
+  function step(now){
+    const elapsed = now - startTime;
+    const progress = Math.min(1, elapsed / duration);
+    bgm.volume = Math.max(0, startVol * (1 - progress));
+    if(progress < 1){
+      requestAnimationFrame(step);
+    } else {
+      bgm.pause();
+      bgm.volume = 0;
+    }
+  }
+  requestAnimationFrame(step);
+}
+
+(function initIntroBgmObserver(){
+  const surpriseSec = document.getElementById('surprise');
+  const boxAnswer = document.getElementById('boxAnswer');
+  const unlockBtn = document.getElementById('unlockBoxBtn');
+
+  if(surpriseSec && 'IntersectionObserver' in window){
+    const obs = new IntersectionObserver((entries)=>{
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          fadeAndStopIntroBgm();
+        }
+      });
+    }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
+    obs.observe(surpriseSec);
+  }
+
+  // Fallback scroll listener in case IntersectionObserver has threshold delays
+  window.addEventListener('scroll', ()=>{
+    if(!surpriseSec) return;
+    const rect = surpriseSec.getBoundingClientRect();
+    if(rect.top < window.innerHeight * 0.85){
+      fadeAndStopIntroBgm();
+    }
+  }, { passive: true });
+
+  // Direct interaction fallbacks (if user focused or clicked inside #surprise)
+  if(boxAnswer){
+    boxAnswer.addEventListener('focus', fadeAndStopIntroBgm, { once: true });
+    boxAnswer.addEventListener('input', fadeAndStopIntroBgm, { once: true });
+  }
+  if(unlockBtn){
+    unlockBtn.addEventListener('click', fadeAndStopIntroBgm, { once: true });
+  }
+})();
+
+/* ============================================================
    LOCK SCREEN
    ============================================================ */
 (function(){
@@ -1737,6 +1806,7 @@ const CONFIG = {
     if(entered.length === pinLen){
       if(entered === CONFIG.pin){
         wordsWrap.classList.add('done');
+        playIntroBgm();
         setTimeout(()=>{ lock.classList.add('unlocked'); }, 2400);
       } else {
         setTimeout(shakeFail, 150);

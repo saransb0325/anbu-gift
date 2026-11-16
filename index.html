@@ -338,6 +338,244 @@ section{
 }
 .gallery-dot.active{ background:#fff; width:22px; border-radius:5px; box-shadow:0 0 12px rgba(255,255,255,0.6); }
 
+/* ============ POLAROID PHOTO WALL ============ */
+#polaroids{
+  min-height: auto;
+  padding: 8vh 4vw;
+  overflow: hidden;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+.polaroid-grid{
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px 14px;
+  width: min(94vw, 1020px);
+  margin: 0 auto;
+  padding: 16px 4px 32px 4px;
+  box-sizing: border-box;
+}
+@media (min-width: 640px){
+  .polaroid-grid{
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px 22px;
+  }
+}
+@media (min-width: 960px){
+  .polaroid-grid{
+    grid-template-columns: repeat(4, 1fr);
+    gap: 38px 26px;
+  }
+}
+
+.polaroid-card{
+  position: relative;
+  background: #ffffff;
+  padding: 10px 10px 32px 10px;
+  border-radius: 4px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.42), 0 2px 6px rgba(0, 0, 0, 0.22);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  transform-origin: center center;
+  will-change: transform, opacity;
+  transition: transform 0.65s var(--ease-out), opacity 0.65s var(--ease-out), box-shadow 0.3s ease;
+  opacity: 0;
+  transform: translateY(35px) rotate(calc(var(--rot, 0deg) * 1.5)) scale(0.95);
+}
+.polaroid-card.revealed{
+  opacity: 1;
+  transform: translateY(var(--offset-y, 0px)) rotate(var(--rot, 0deg)) scale(1);
+}
+.polaroid-card:hover{
+  transform: translateY(calc(var(--offset-y, 0px) - 6px)) rotate(0deg) scale(1.04);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.55), 0 4px 12px rgba(56, 189, 248, 0.30);
+  z-index: 5;
+}
+.polaroid-card:active{
+  transform: translateY(calc(var(--offset-y, 0px) - 2px)) scale(1.01);
+}
+
+.polaroid-img-wrap{
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  background: #14162e;
+  border-radius: 2px;
+  overflow: hidden;
+}
+.polaroid-img{
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+}
+.polaroid-card:hover .polaroid-img{
+  transform: scale(1.03);
+}
+
+/* Optional translucent washi tape strip */
+.polaroid-tape{
+  position: absolute;
+  top: -10px;
+  left: 50%;
+  transform: translateX(-50%) rotate(var(--tape-rot, -1deg));
+  width: 50px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.50);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  border-left: 2px dashed rgba(255, 255, 255, 0.45);
+  border-right: 2px dashed rgba(255, 255, 255, 0.45);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* Handwritten bottom caption */
+.polaroid-caption{
+  position: absolute;
+  bottom: 8px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: 'Dancing Script', 'Segoe Script', cursive;
+  font-size: 13px;
+  color: #4b516d;
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+
+/* ============ POLAROID LIGHTBOX ============ */
+.polaroid-lightbox{
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition: opacity 0.32s ease, visibility 0.32s ease;
+  touch-action: none;
+}
+.polaroid-lightbox.open{
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+.lightbox-backdrop{
+  position: absolute;
+  inset: 0;
+  background: rgba(6, 8, 24, 0.88);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+}
+.lightbox-content{
+  position: relative;
+  z-index: 1;
+  max-width: 90vw;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.lightbox-img-wrap{
+  position: relative;
+  max-width: 88vw;
+  max-height: 78vh;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #000;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.65), 0 0 0 1px rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.lightbox-img{
+  max-width: 88vw;
+  max-height: 78vh;
+  object-fit: contain;
+  display: block;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.lightbox-counter{
+  margin-top: 12px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--text-lo);
+  letter-spacing: 0.12em;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.lightbox-btn{
+  position: absolute;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #fff;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  cursor: pointer;
+  transition: background 0.25s ease, transform 0.2s ease;
+  z-index: 10;
+}
+.lightbox-btn:hover{
+  background: rgba(255, 255, 255, 0.25);
+  transform: scale(1.08);
+}
+.lightbox-btn:active{
+  transform: scale(0.94);
+}
+.lightbox-close{
+  top: -50px;
+  right: 0;
+  font-size: 18px;
+}
+.lightbox-prev{
+  left: -58px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 28px;
+  line-height: 1;
+}
+.lightbox-next{
+  right: -58px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 28px;
+  line-height: 1;
+}
+@media (max-width: 600px){
+  .lightbox-prev{
+    left: 8px;
+    background: rgba(0,0,0,0.45);
+  }
+  .lightbox-next{
+    right: 8px;
+    background: rgba(0,0,0,0.45);
+  }
+  .lightbox-close{
+    top: -46px;
+    right: 6px;
+  }
+}
+
 /* ============ QUIZ ============ */
 .quiz-box{ width:min(92vw,480px); padding:36px 30px; text-align:center; }
 .quiz-q{ font-size:17px; font-weight:500; margin-bottom:26px; line-height:1.5; }
@@ -957,6 +1195,7 @@ footer{ text-align:center; padding:40px 20px 60px; color:var(--text-lo); font-fa
 @media (prefers-reduced-motion: reduce){
   *, *::before, *::after{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; animation-delay:0s !important; transition-duration:0.01ms !important; transition-delay:0s !important; scroll-behavior:auto !important; }
   .orb, .intro-orb, .bf-wing-left, .bf-wing-right, .firefly, .sparkle-pt, .s2-drifter{ animation:none !important; }
+  .polaroid-card{ opacity:1 !important; transform:none !important; transition:none !important; }
 }
 
 @media (max-width:420px){
@@ -1105,6 +1344,121 @@ footer{ text-align:center; padding:40px 20px 60px; color:var(--text-lo); font-fa
     <div class="gallery" id="gallery"></div>
     <div class="gallery-dots" id="galleryDots"></div>
   </section>
+
+  <!-- ============ POLAROID WALL ============ -->
+  <section id="polaroids">
+    <div class="eyebrow">More of us</div>
+    <div class="section-title">Every little moment</div>
+    <div class="section-sub">Snapshots, candids, and sweet memories of us.</div>
+    <div class="polaroid-grid" id="polaroidGrid">
+      <div class="polaroid-card" style="--rot:-3.5deg; --offset-y:0px; transition-delay:0ms;" data-index="0">
+        <div class="polaroid-tape" style="--tape-rot:-1.5deg;"></div>
+        <div class="polaroid-img-wrap">
+          <img class="polaroid-img" src="photo5.jpeg" alt="Every little moment - 1" loading="lazy" decoding="async">
+        </div>
+        <div class="polaroid-caption">sweet smile 🤍</div>
+      </div>
+      <div class="polaroid-card" style="--rot:4.2deg; --offset-y:14px; transition-delay:80ms;" data-index="1">
+        <div class="polaroid-img-wrap">
+          <img class="polaroid-img" src="photo6.jpeg" alt="Every little moment - 2" loading="lazy" decoding="async">
+        </div>
+        <div class="polaroid-caption">us ✨</div>
+      </div>
+      <div class="polaroid-card" style="--rot:-5.1deg; --offset-y:-8px; transition-delay:160ms;" data-index="2">
+        <div class="polaroid-tape" style="--tape-rot:1.8deg;"></div>
+        <div class="polaroid-img-wrap">
+          <img class="polaroid-img" src="photo7.jpeg" alt="Every little moment - 3" loading="lazy" decoding="async">
+        </div>
+        <div class="polaroid-caption">cutie 🌸</div>
+      </div>
+      <div class="polaroid-card" style="--rot:2.8deg; --offset-y:12px; transition-delay:240ms;" data-index="3">
+        <div class="polaroid-img-wrap">
+          <img class="polaroid-img" src="photo8.jpeg" alt="Every little moment - 4" loading="lazy" decoding="async">
+        </div>
+        <div class="polaroid-caption">my favorite 💫</div>
+      </div>
+      <div class="polaroid-card" style="--rot:-4.4deg; --offset-y:4px; transition-delay:0ms;" data-index="4">
+        <div class="polaroid-tape" style="--tape-rot:-2deg;"></div>
+        <div class="polaroid-img-wrap">
+          <img class="polaroid-img" src="photo9.jpeg" alt="Every little moment - 5" loading="lazy" decoding="async">
+        </div>
+        <div class="polaroid-caption">forever with you 💗</div>
+      </div>
+      <div class="polaroid-card" style="--rot:5.3deg; --offset-y:-12px; transition-delay:80ms;" data-index="5">
+        <div class="polaroid-tape" style="--tape-rot:1.2deg;"></div>
+        <div class="polaroid-img-wrap">
+          <img class="polaroid-img" src="photo10.jpeg" alt="Every little moment - 6" loading="lazy" decoding="async">
+        </div>
+        <div class="polaroid-caption">golden hours ☀️</div>
+      </div>
+      <div class="polaroid-card" style="--rot:-2.2deg; --offset-y:10px; transition-delay:160ms;" data-index="6">
+        <div class="polaroid-img-wrap">
+          <img class="polaroid-img" src="photo11.jpeg" alt="Every little moment - 7" loading="lazy" decoding="async">
+        </div>
+        <div class="polaroid-caption">that day 🥰</div>
+      </div>
+      <div class="polaroid-card" style="--rot:3.6deg; --offset-y:-6px; transition-delay:240ms;" data-index="7">
+        <div class="polaroid-tape" style="--tape-rot:-1deg;"></div>
+        <div class="polaroid-img-wrap">
+          <img class="polaroid-img" src="photo12.jpeg" alt="Every little moment - 8" loading="lazy" decoding="async">
+        </div>
+        <div class="polaroid-caption">pure happiness 🦋</div>
+      </div>
+      <div class="polaroid-card" style="--rot:-5.8deg; --offset-y:14px; transition-delay:0ms;" data-index="8">
+        <div class="polaroid-img-wrap">
+          <img class="polaroid-img" src="photo13.jpeg" alt="Every little moment - 9" loading="lazy" decoding="async">
+        </div>
+        <div class="polaroid-caption">hold my hand 🤍</div>
+      </div>
+      <div class="polaroid-card" style="--rot:4.7deg; --offset-y:-10px; transition-delay:80ms;" data-index="9">
+        <div class="polaroid-tape" style="--tape-rot:2.2deg;"></div>
+        <div class="polaroid-img-wrap">
+          <img class="polaroid-img" src="photo14.jpeg" alt="Every little moment - 10" loading="lazy" decoding="async">
+        </div>
+        <div class="polaroid-caption">cherished 💕</div>
+      </div>
+      <div class="polaroid-card" style="--rot:-3.1deg; --offset-y:6px; transition-delay:160ms;" data-index="10">
+        <div class="polaroid-img-wrap">
+          <img class="polaroid-img" src="photo15.jpeg" alt="Every little moment - 11" loading="lazy" decoding="async">
+        </div>
+        <div class="polaroid-caption">always you 🌙</div>
+      </div>
+      <div class="polaroid-card" style="--rot:5.5deg; --offset-y:-12px; transition-delay:240ms;" data-index="11">
+        <div class="polaroid-tape" style="--tape-rot:-1.8deg;"></div>
+        <div class="polaroid-img-wrap">
+          <img class="polaroid-img" src="photo16.jpeg" alt="Every little moment - 12" loading="lazy" decoding="async">
+        </div>
+        <div class="polaroid-caption">you &amp; me 🧡</div>
+      </div>
+      <div class="polaroid-card" style="--rot:-4.8deg; --offset-y:8px; transition-delay:0ms;" data-index="12">
+        <div class="polaroid-img-wrap">
+          <img class="polaroid-img" src="photo17.jpeg" alt="Every little moment - 13" loading="lazy" decoding="async">
+        </div>
+        <div class="polaroid-caption">unfiltered love ✨</div>
+      </div>
+      <div class="polaroid-card" style="--rot:3.2deg; --offset-y:-4px; transition-delay:80ms;" data-index="13">
+        <div class="polaroid-tape" style="--tape-rot:1.5deg;"></div>
+        <div class="polaroid-img-wrap">
+          <img class="polaroid-img" src="photo18.jpeg" alt="Every little moment - 14" loading="lazy" decoding="async">
+        </div>
+        <div class="polaroid-caption">my heart 💙</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ POLAROID LIGHTBOX MODAL ============ -->
+  <div class="polaroid-lightbox" id="polaroidLightbox" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Photo preview">
+    <div class="lightbox-backdrop" id="lightboxBackdrop"></div>
+    <div class="lightbox-content" id="lightboxContent">
+      <button class="lightbox-btn lightbox-close" id="lightboxClose" aria-label="Close photo preview">✕</button>
+      <button class="lightbox-btn lightbox-prev" id="lightboxPrev" aria-label="Previous photo">‹</button>
+      <button class="lightbox-btn lightbox-next" id="lightboxNext" aria-label="Next photo">›</button>
+      <div class="lightbox-img-wrap">
+        <img class="lightbox-img" id="lightboxImg" src="" alt="Full view photo" decoding="async">
+      </div>
+      <div class="lightbox-counter" id="lightboxCounter">1 / 14</div>
+    </div>
+  </div>
 
   <section id="quiz">
     <div class="eyebrow">One question</div>
@@ -1906,6 +2260,117 @@ document.getElementById('wishMessage').textContent = CONFIG.wishMessage;
   if(count > 1){
     setInterval(()=> goTo(current+1), 3200);
   }
+})();
+
+/* ============================================================
+   POLAROID WALL & LIGHTBOX CONTROLLER
+   ============================================================ */
+(function initPolaroidWall(){
+  const cards = Array.from(document.querySelectorAll('.polaroid-card'));
+  const lightbox = document.getElementById('polaroidLightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxCounter = document.getElementById('lightboxCounter');
+  const closeBtn = document.getElementById('lightboxClose');
+  const prevBtn = document.getElementById('lightboxPrev');
+  const nextBtn = document.getElementById('lightboxNext');
+  const backdrop = document.getElementById('lightboxBackdrop');
+
+  if(!cards.length || !lightbox) return;
+
+  const photoSources = cards.map(c => {
+    const img = c.querySelector('.polaroid-img');
+    return img ? img.getAttribute('src') : '';
+  });
+
+  let currentIndex = 0;
+
+  // Scroll reveal: each card starts slightly lower, rotated and transparent,
+  // and animates in once using IntersectionObserver with stagger delay.
+  if('IntersectionObserver' in window){
+    const obs = new IntersectionObserver((entries)=>{
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          entry.target.classList.add('revealed');
+          obs.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -30px 0px' });
+    cards.forEach(c => obs.observe(c));
+  } else {
+    cards.forEach(c => c.classList.add('revealed'));
+  }
+
+  function showPhoto(idx){
+    currentIndex = ((idx % photoSources.length) + photoSources.length) % photoSources.length;
+    lightboxImg.style.opacity = '0';
+    lightboxImg.style.transform = 'scale(0.96)';
+    setTimeout(()=>{
+      lightboxImg.src = photoSources[currentIndex];
+      lightboxCounter.textContent = `${currentIndex + 1} / ${photoSources.length}`;
+      lightboxImg.onload = ()=>{
+        lightboxImg.style.opacity = '1';
+        lightboxImg.style.transform = 'scale(1)';
+      };
+      if(lightboxImg.complete){
+        lightboxImg.style.opacity = '1';
+        lightboxImg.style.transform = 'scale(1)';
+      }
+    }, 60);
+  }
+
+  function openLightbox(idx){
+    showPhoto(idx);
+    lightbox.classList.add('open');
+    lightbox.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox(){
+    lightbox.classList.remove('open');
+    lightbox.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  cards.forEach((card, i)=>{
+    card.addEventListener('click', ()=> openLightbox(i));
+  });
+
+  if(closeBtn) closeBtn.addEventListener('click', closeLightbox);
+  if(backdrop) backdrop.addEventListener('click', closeLightbox);
+  if(prevBtn) prevBtn.addEventListener('click', (e)=>{ e.stopPropagation(); showPhoto(currentIndex - 1); });
+  if(nextBtn) nextBtn.addEventListener('click', (e)=>{ e.stopPropagation(); showPhoto(currentIndex + 1); });
+
+  // Keyboard navigation
+  window.addEventListener('keydown', (e)=>{
+    if(!lightbox.classList.contains('open')) return;
+    if(e.key === 'Escape') closeLightbox();
+    if(e.key === 'ArrowLeft') showPhoto(currentIndex - 1);
+    if(e.key === 'ArrowRight') showPhoto(currentIndex + 1);
+  });
+
+  // Touch swipe support (left/right swipe for next/prev)
+  let touchStartX = 0;
+  let touchStartY = 0;
+  lightbox.addEventListener('touchstart', (e)=>{
+    if(e.touches.length === 1){
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+    }
+  }, { passive: true });
+
+  lightbox.addEventListener('touchend', (e)=>{
+    if(e.changedTouches.length === 1){
+      const deltaX = e.changedTouches[0].clientX - touchStartX;
+      const deltaY = e.changedTouches[0].clientY - touchStartY;
+      if(Math.abs(deltaX) > 40 && Math.abs(deltaX) > Math.abs(deltaY) * 1.3){
+        if(deltaX < 0){
+          showPhoto(currentIndex + 1);
+        } else {
+          showPhoto(currentIndex - 1);
+        }
+      }
+    }
+  }, { passive: true });
 })();
 
 /* ============================================================

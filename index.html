@@ -93,6 +93,16 @@ body{
   to{ transform: translate3d(7vmax,5vmax,0) scale(1.14); }
 }
 
+/* ============ GLOBAL SPARKLE CANVAS ============ */
+#sparkleBg{
+  position:fixed;
+  inset:0;
+  width:100vw;
+  height:100vh;
+  z-index:0;
+  pointer-events:none;
+}
+
 /* ---------- sections ---------- */
 .stage{ position:relative; z-index:1; }
 section{
@@ -1558,6 +1568,7 @@ footer{ text-align:center; padding:40px 20px 60px; color:var(--text-lo); font-fa
 <body>
 
 <div class="orbs" aria-hidden="true"><span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span><span class="orb o4"></span></div>
+<canvas id="sparkleBg" aria-hidden="true"></canvas>
 
 <!-- ============ INTRO EXPERIENCE OVERLAY ============ -->
 <div id="introOverlay" class="intro-overlay" aria-live="polite">
@@ -1648,7 +1659,6 @@ footer{ text-align:center; padding:40px 20px 60px; color:var(--text-lo); font-fa
 
   <!-- Scene 5: Final -->
   <div class="intro-scene scene-5" id="introScene5">
-    <div class="fireflies-container" id="s5Fireflies" aria-hidden="true"></div>
     <div class="scene5-content">
       <div class="neon-huge-text" id="s5LoveText">I Love You</div>
       <button class="btn intro-surprise-btn" id="s5SurpriseBtn">Open your surprise 🎁</button>
@@ -2435,20 +2445,6 @@ if(document.readyState === 'loading'){
   document.getElementById('s5LoveText').textContent = CONFIG_INTRO.scene5.loveText;
   const s5SurpriseBtn = document.getElementById('s5SurpriseBtn');
   s5SurpriseBtn.textContent = CONFIG_INTRO.scene5.surpriseBtn;
-
-  // Rising golden fireflies
-  const firefliesWrap = document.getElementById('s5Fireflies');
-  for(let i = 0; i < 22; i++){
-    const ff = document.createElement('span');
-    ff.className = 'firefly';
-    const sz = 3 + Math.random() * 5;
-    ff.style.width = ff.style.height = sz + 'px';
-    ff.style.left = (5 + Math.random() * 90) + '%';
-    ff.style.setProperty('--drift-x', ((Math.random() - 0.5) * 80) + 'px');
-    ff.style.animationDelay = (Math.random() * 5) + 's';
-    ff.style.animationDuration = (4.5 + Math.random() * 3) + 's';
-    firefliesWrap.appendChild(ff);
-  }
 
   function onSceneEntered(num){
     if(num === 3){
@@ -3278,6 +3274,205 @@ Luv yewww myluuuh 💗🥺🫶💋 Nee dhaan enakku ellame!!
     });
     mo.observe(lock, { attributes:true, attributeFilter:['class'] });
   }
+})();
+
+/* ============================================================
+   GLOBAL FLOATING GOLDEN SPARKLE BACKGROUND
+   ============================================================ */
+(function initSparkleBg(){
+  const canvas = document.getElementById('sparkleBg');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if(!ctx) return;
+
+  const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+  let isReducedMotion = motionQuery.matches;
+
+  let width = 0;
+  let height = 0;
+  let dpr = 1;
+  let animId = null;
+  let particles = [];
+
+  function getTargetCount(){
+    return window.innerWidth < 600 ? 45 : 80;
+  }
+
+  function createParticle(spawnAnywhere){
+    const r = 1.0 + Math.random() * 2.5; // size 1 to 3.5px
+    const minAlpha = 0.12 + Math.random() * 0.18;
+    const maxAlpha = 0.75 + Math.random() * 0.22; // ~0.75 to ~0.97
+    const w = width || window.innerWidth || 390;
+    const h = height || window.innerHeight || 844;
+    return {
+      x: Math.random() * w,
+      y: spawnAnywhere ? Math.random() * h : h + 5 + Math.random() * 25,
+      r: r,
+      speedY: 0.25 + Math.random() * 0.45, // slow upward drift
+      swayAmp: 0.35 + Math.random() * 0.55, // horizontal sway
+      swayAngle: Math.random() * Math.PI * 2,
+      swaySpeed: 0.012 + Math.random() * 0.022,
+      pulseAngle: Math.random() * Math.PI * 2,
+      pulseSpeed: 0.018 + Math.random() * 0.028,
+      minAlpha: minAlpha,
+      maxAlpha: maxAlpha,
+      alpha: minAlpha + (maxAlpha - minAlpha) * Math.random()
+    };
+  }
+
+  function resize(){
+    width = window.innerWidth;
+    height = window.innerHeight;
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    canvas.width = Math.floor(width * dpr);
+    canvas.height = Math.floor(height * dpr);
+    canvas.style.width = width + 'px';
+    canvas.style.height = height + 'px';
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    const targetCount = isReducedMotion ? 25 : getTargetCount();
+    if(particles.length === 0){
+      for(let i = 0; i < targetCount; i++){
+        particles.push(createParticle(true));
+      }
+    } else if(particles.length < targetCount){
+      const diff = targetCount - particles.length;
+      for(let i = 0; i < diff; i++){
+        particles.push(createParticle(true));
+      }
+    } else if(particles.length > targetCount){
+      particles.length = targetCount;
+    }
+
+    if(isReducedMotion){
+      renderStatic();
+    }
+  }
+
+  function drawParticle(p){
+    // Soft golden glow (around #f5c76b / rgba(255, 200, 110, 0.9))
+    const glowRadius = p.r * 2.8;
+    const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowRadius);
+    grad.addColorStop(0, `rgba(255, 248, 220, ${p.alpha})`);
+    grad.addColorStop(0.35, `rgba(245, 199, 107, ${p.alpha * 0.9})`);
+    grad.addColorStop(0.7, `rgba(255, 200, 110, ${p.alpha * 0.35})`);
+    grad.addColorStop(1, 'rgba(245, 199, 107, 0)');
+
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, glowRadius, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Bright shimmering core
+    ctx.fillStyle = `rgba(255, 252, 235, ${Math.min(1, p.alpha * 1.15)})`;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, p.r * 0.6, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function renderStatic(){
+    ctx.clearRect(0, 0, width, height);
+    for(let i = 0; i < particles.length; i++){
+      drawParticle(particles[i]);
+    }
+  }
+
+  function update(){
+    for(let i = 0; i < particles.length; i++){
+      const p = particles[i];
+      p.y -= p.speedY;
+      p.swayAngle += p.swaySpeed;
+      p.x += Math.sin(p.swayAngle) * p.swayAmp;
+
+      p.pulseAngle += p.pulseSpeed;
+      const wave = 0.5 + 0.5 * Math.sin(p.pulseAngle);
+      p.alpha = p.minAlpha + (p.maxAlpha - p.minAlpha) * wave;
+
+      // Wrap horizontally
+      const maxGlow = p.r * 3;
+      if(p.x < -maxGlow) p.x = width + maxGlow;
+      else if(p.x > width + maxGlow) p.x = -maxGlow;
+
+      // Respawn when leaving top or faded fully
+      if(p.y < -maxGlow){
+        p.y = height + 5 + Math.random() * 20;
+        p.x = Math.random() * width;
+        p.swayAngle = Math.random() * Math.PI * 2;
+        p.pulseAngle = Math.random() * Math.PI * 2;
+      }
+    }
+  }
+
+  function loop(){
+    ctx.clearRect(0, 0, width, height);
+    update();
+    for(let i = 0; i < particles.length; i++){
+      drawParticle(particles[i]);
+    }
+    animId = requestAnimationFrame(loop);
+  }
+
+  function start(){
+    if(isReducedMotion){
+      renderStatic();
+      return;
+    }
+    if(!animId){
+      animId = requestAnimationFrame(loop);
+    }
+  }
+
+  function stop(){
+    if(animId){
+      cancelAnimationFrame(animId);
+      animId = null;
+    }
+  }
+
+  // Pause loop on visibilitychange when tab is hidden
+  document.addEventListener('visibilitychange', ()=>{
+    if(document.hidden){
+      stop();
+    } else {
+      if(!isReducedMotion){
+        start();
+      }
+    }
+  });
+
+  // Respect prefers-reduced-motion
+  if(typeof motionQuery.addEventListener === 'function'){
+    motionQuery.addEventListener('change', (e)=>{
+      isReducedMotion = e.matches;
+      if(isReducedMotion){
+        stop();
+        resize();
+      } else {
+        resize();
+        start();
+      }
+    });
+  } else if(typeof motionQuery.addListener === 'function'){
+    motionQuery.addListener((e)=>{
+      isReducedMotion = e.matches;
+      if(isReducedMotion){
+        stop();
+        resize();
+      } else {
+        resize();
+        start();
+      }
+    });
+  }
+
+  // Handle window resize and orientation changes
+  window.addEventListener('resize', resize, { passive:true });
+  window.addEventListener('orientationchange', resize, { passive:true });
+
+  resize();
+  start();
 })();
 </script>
 </body>

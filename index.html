@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Papaw — A Surprise Wish for u </title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,600&family=Poppins:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&family=Dancing+Script:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;1,600&family=Poppins:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&family=Dancing+Script:wght@400;500;600&family=Caveat:wght@400;600;700&display=swap" rel="stylesheet">
 <style>
 /* ============================================================
    CONFIG-DRIVEN BIRTHDAY EXPERIENCE
@@ -1222,6 +1222,317 @@ footer{ text-align:center; padding:40px 20px 60px; color:var(--text-lo); font-fa
 .secret-video{ animation: revealin 0.9s var(--ease-out) backwards; }
 @keyframes revealin{ from{ opacity:0; transform:translateY(16px) scale(0.98); } to{ opacity:1; transform:none; } }
 
+/* ============ LOVE LETTER ENVELOPE SECTION ============ */
+#letter{
+  min-height: 80vh;
+  padding: 8vh 4vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  max-width: 100vw;
+  box-sizing: border-box;
+}
+
+.letter-hint{
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--pink-soft);
+  letter-spacing: 0.1em;
+  margin-top: -4px;
+  margin-bottom: 34px;
+  text-transform: uppercase;
+}
+
+.envelope-stage{
+  position: relative;
+  width: min(88vw, 360px);
+  height: 230px;
+  perspective: 1200px;
+  margin: 10px auto 30px auto;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.envelope-wrap{
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.6s var(--ease-spring);
+  animation: envelopeFloat 3.8s ease-in-out infinite;
+}
+.envelope-wrap.opened{
+  animation: none;
+}
+
+@keyframes envelopeFloat{
+  0%, 100%{ transform: translateY(0); }
+  50%{ transform: translateY(-8px); }
+}
+
+/* Envelope base */
+.envelope-back{
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(145deg, #ffb3c6 0%, #ff8fab 100%);
+  border-radius: 16px;
+  box-shadow: 0 16px 36px rgba(4, 6, 28, 0.5), 0 0 0 1.5px rgba(255, 215, 0, 0.45);
+}
+
+/* Letter inside preview */
+.envelope-paper-preview{
+  position: absolute;
+  top: 10px;
+  left: 12px;
+  right: 12px;
+  height: 90%;
+  background: #fffcf7;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  transition: transform 0.8s var(--ease-spring), opacity 0.5s ease;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Caveat', cursive;
+  font-size: 19px;
+  color: #7a6e85;
+}
+
+/* Pocket folds */
+.envelope-front-pocket{
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+.envelope-pocket-left{
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-bottom: 230px solid #ff9ebb;
+  border-right: 180px solid transparent;
+  border-bottom-left-radius: 16px;
+  filter: drop-shadow(1px -1px 2px rgba(0,0,0,0.06));
+}
+.envelope-pocket-right{
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 0;
+  height: 0;
+  border-bottom: 230px solid #ff9ebb;
+  border-left: 180px solid transparent;
+  border-bottom-right-radius: 16px;
+  filter: drop-shadow(-1px -1px 2px rgba(0,0,0,0.06));
+}
+.envelope-pocket-bottom{
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-bottom: 120px solid #ff85a2;
+  border-left: 180px solid transparent;
+  border-right: 180px solid transparent;
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+.envelope-gold-trim{
+  position: absolute;
+  inset: 0;
+  border: 1px dashed rgba(255, 215, 0, 0.45);
+  border-radius: 16px;
+  pointer-events: none;
+  z-index: 4;
+}
+
+/* Flap */
+.envelope-flap{
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 0;
+  border-top: 130px solid #ffb3c6;
+  border-left: 180px solid transparent;
+  border-right: 180px solid transparent;
+  transform-origin: top center;
+  transform-style: preserve-3d;
+  transition: transform 0.75s cubic-bezier(0.4, 0, 0.2, 1);
+  z-index: 5;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.18));
+}
+.envelope-wrap.opened .envelope-flap{
+  transform: rotateX(180deg);
+  z-index: 1;
+}
+
+/* Heart Seal */
+.envelope-seal{
+  position: absolute;
+  top: -15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #ffd166 0%, #ff5d8f 65%, #c9184a 100%);
+  box-shadow: 0 4px 14px rgba(255, 93, 143, 0.6), 0 0 0 2px rgba(255, 215, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 19px;
+  color: #fff;
+  z-index: 6;
+  transition: transform 0.4s ease, opacity 0.3s ease;
+  animation: sealPulse 2s ease-in-out infinite;
+}
+@keyframes sealPulse{
+  0%, 100%{ transform: translateX(-50%) scale(1); }
+  50%{ transform: translateX(-50%) scale(1.08); box-shadow: 0 4px 20px rgba(255, 93, 143, 0.8), 0 0 0 4px rgba(255, 215, 0, 0.4); }
+}
+.envelope-wrap.opened .envelope-seal{
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ============ EXPANDED LETTER CARD ============ */
+.letter-card{
+  display: none;
+  width: min(92vw, 540px);
+  max-height: 80vh;
+  margin: 18px auto 0 auto;
+  background: linear-gradient(170deg, #fffdfa 0%, #fff6f8 60%, #faedf1 100%);
+  border-radius: 22px;
+  padding: 30px 26px 32px 26px;
+  box-shadow:
+    0 24px 60px rgba(4, 6, 28, 0.6),
+    0 0 0 1px rgba(255, 255, 255, 0.9) inset,
+    0 0 0 1.5px rgba(255, 209, 102, 0.45);
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+  animation: cardSlideUp 0.85s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+@keyframes cardSlideUp{
+  0%{ opacity: 0; transform: translateY(40px) scale(0.92); }
+  100%{ opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.letter-card-header{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px dashed rgba(255, 143, 171, 0.35);
+  padding-bottom: 12px;
+  margin-bottom: 18px;
+}
+.letter-card-title{
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 18px;
+  color: #a44a68;
+  font-weight: 600;
+}
+.letter-seal-badge{
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #ff5d8f 0%, #c9184a 100%);
+  box-shadow: 0 2px 8px rgba(255, 93, 143, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 15px;
+  animation: sealHeartbeat 2s ease-in-out infinite;
+  cursor: default;
+}
+@keyframes sealHeartbeat{
+  0%, 100%{ transform: scale(1); }
+  15%{ transform: scale(1.18); }
+  30%{ transform: scale(1); }
+  45%{ transform: scale(1.1); }
+}
+
+.letter-content-scroll{
+  max-height: 52vh;
+  overflow-y: auto;
+  padding-right: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 93, 143, 0.3) transparent;
+}
+.letter-content-scroll::-webkit-scrollbar{
+  width: 5px;
+}
+.letter-content-scroll::-webkit-scrollbar-thumb{
+  background: rgba(255, 93, 143, 0.3);
+  border-radius: 10px;
+}
+
+.letter-paragraphs{
+  font-family: 'Caveat', 'Dancing Script', cursive;
+  font-size: clamp(21px, 4.8vw, 25px);
+  line-height: 1.65;
+  color: #2b2438;
+  text-shadow: 0 0 1px rgba(43, 36, 56, 0.1);
+}
+.letter-paragraph{
+  margin-bottom: 16px;
+  min-height: 28px;
+  word-break: break-word;
+}
+.letter-cursor{
+  display: inline-block;
+  width: 2px;
+  height: 1.1em;
+  background: var(--pink);
+  vertical-align: text-bottom;
+  margin-left: 2px;
+  animation: cursorBlink 0.7s infinite;
+}
+@keyframes cursorBlink{
+  0%, 100%{ opacity: 1; }
+  50%{ opacity: 0; }
+}
+
+.letter-card-footer{
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+  padding-top: 12px;
+  border-top: 1px dashed rgba(255, 143, 171, 0.35);
+}
+.letter-replay-btn{
+  background: rgba(255, 93, 143, 0.12);
+  border: 1px solid rgba(255, 93, 143, 0.35);
+  color: #a44a68;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+.letter-replay-btn:hover{
+  background: rgba(255, 93, 143, 0.22);
+  transform: scale(1.04);
+}
+.letter-deco{
+  font-size: 20px;
+  user-select: none;
+}
+
 
 
 /* browsers without backdrop-filter get a denser tint so text stays readable */
@@ -1233,6 +1544,8 @@ footer{ text-align:center; padding:40px 20px 60px; color:var(--text-lo); font-fa
   *, *::before, *::after{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; animation-delay:0s !important; transition-duration:0.01ms !important; transition-delay:0s !important; scroll-behavior:auto !important; }
   .orb, .intro-orb, .bf-wing-left, .bf-wing-right, .firefly, .sparkle-pt, .s2-drifter{ animation:none !important; }
   .polaroid-card{ opacity:1 !important; transform:none !important; transition:none !important; }
+  .envelope-wrap, .envelope-seal, .letter-card, .letter-seal-badge{ animation:none !important; }
+  .letter-cursor{ display:none !important; }
 }
 
 @media (max-width:420px){
@@ -1555,6 +1868,47 @@ footer{ text-align:center; padding:40px 20px 60px; color:var(--text-lo); font-fa
         <source src="song.mp3" type="audio/mpeg">
         Your browser can't play this audio.
       </audio>
+    </div>
+  </section>
+
+  <!-- ============ LOVE LETTER ENVELOPE SECTION ============ -->
+  <section id="letter">
+    <div class="eyebrow">From my heart</div>
+    <div class="section-title">A Message From My Heart</div>
+    <div class="letter-hint" id="letterHintText">Tap to open</div>
+
+    <!-- Centered 3D Envelope -->
+    <div class="envelope-stage" id="envelopeStage" role="button" tabindex="0" aria-label="Tap to open letter from my heart">
+      <div class="envelope-wrap" id="envelopeWrap">
+        <div class="envelope-back"></div>
+        <div class="envelope-paper-preview">
+          <span>💌 tap to read</span>
+        </div>
+        <div class="envelope-front-pocket">
+          <div class="envelope-pocket-left"></div>
+          <div class="envelope-pocket-right"></div>
+          <div class="envelope-pocket-bottom"></div>
+        </div>
+        <div class="envelope-gold-trim"></div>
+        <div class="envelope-flap" id="envelopeFlap">
+          <div class="envelope-seal" id="envelopeSeal">♥</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Expanded Letter Card -->
+    <div class="letter-card" id="letterCard" aria-live="polite">
+      <div class="letter-card-header">
+        <div class="letter-card-title">A Message From My Heart 🌸</div>
+        <div class="letter-seal-badge" aria-hidden="true">♥</div>
+      </div>
+      <div class="letter-content-scroll" id="letterScrollWrap">
+        <div class="letter-paragraphs" id="letterParagraphs"></div>
+      </div>
+      <div class="letter-card-footer">
+        <button class="letter-replay-btn" id="letterReplayBtn" style="display:none;">Replay letter 💌</button>
+        <div class="letter-deco" aria-hidden="true">🌸✨</div>
+      </div>
     </div>
   </section>
 
@@ -2643,6 +2997,138 @@ function launchConfetti(){
     setTimeout(()=>p.remove(), duration);
   }
 }
+
+/* ============================================================
+   LOVE LETTER ENVELOPE CONTROLLER
+   ============================================================ */
+(function initLoveLetter(){
+  const stage = document.getElementById('envelopeStage');
+  const wrap = document.getElementById('envelopeWrap');
+  const card = document.getElementById('letterCard');
+  const paragraphsContainer = document.getElementById('letterParagraphs');
+  const scrollWrap = document.getElementById('letterScrollWrap');
+  const replayBtn = document.getElementById('letterReplayBtn');
+  const hintText = document.getElementById('letterHintText');
+
+  if(!stage || !wrap || !card || !paragraphsContainer) return;
+
+  const rawMessage = `PASTE_MY_MESSAGE_HERE`;
+
+  let isTyping = false;
+  let typingTimer = null;
+  let isOpened = false;
+
+  // Use IntersectionObserver only for lazy-load preparation if needed
+  if('IntersectionObserver' in window){
+    const letterSec = document.getElementById('letter');
+    if(letterSec){
+      const obs = new IntersectionObserver((entries)=>{
+        entries.forEach(e => {
+          if(e.isIntersecting){
+            stage.classList.add('ready');
+            obs.unobserve(letterSec);
+          }
+        });
+      }, { threshold: 0.1 });
+      obs.observe(letterSec);
+    }
+  }
+
+  function typeLetter(){
+    if(isTyping) return;
+    isTyping = true;
+    if(replayBtn) replayBtn.style.display = 'none';
+    paragraphsContainer.innerHTML = '';
+
+    const paragraphs = rawMessage.split(/\n\n+/).filter(p => p.trim().length > 0);
+    if(paragraphs.length === 0){
+      paragraphs.push(rawMessage);
+    }
+
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if(prefersReducedMotion){
+      paragraphs.forEach(p => {
+        const pEl = document.createElement('div');
+        pEl.className = 'letter-paragraph';
+        pEl.textContent = p;
+        paragraphsContainer.appendChild(pEl);
+      });
+      if(replayBtn) replayBtn.style.display = 'inline-block';
+      isTyping = false;
+      return;
+    }
+
+    let pIndex = 0;
+
+    function startNextParagraph(){
+      if(pIndex >= paragraphs.length){
+        isTyping = false;
+        if(replayBtn) replayBtn.style.display = 'inline-block';
+        return;
+      }
+
+      const pText = paragraphs[pIndex];
+      const pEl = document.createElement('div');
+      pEl.className = 'letter-paragraph';
+      const textSpan = document.createElement('span');
+      const cursorSpan = document.createElement('span');
+      cursorSpan.className = 'letter-cursor';
+
+      pEl.appendChild(textSpan);
+      pEl.appendChild(cursorSpan);
+      paragraphsContainer.appendChild(pEl);
+
+      let charIndex = 0;
+      function typeChar(){
+        if(charIndex < pText.length){
+          textSpan.textContent += pText.charAt(charIndex);
+          charIndex++;
+          if(scrollWrap){
+            scrollWrap.scrollTop = scrollWrap.scrollHeight;
+          }
+          const charSpeed = 26 + Math.random() * 18;
+          typingTimer = setTimeout(typeChar, charSpeed);
+        } else {
+          cursorSpan.remove();
+          pIndex++;
+          typingTimer = setTimeout(startNextParagraph, 340);
+        }
+      }
+      typeChar();
+    }
+
+    startNextParagraph();
+  }
+
+  function openEnvelope(){
+    if(isOpened) return;
+    isOpened = true;
+    wrap.classList.add('opened');
+    if(hintText) hintText.style.display = 'none';
+
+    setTimeout(()=>{
+      card.style.display = 'block';
+      stage.style.display = 'none';
+      typeLetter();
+    }, 700);
+  }
+
+  stage.addEventListener('click', openEnvelope);
+  stage.addEventListener('keydown', (e)=>{
+    if(e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      openEnvelope();
+    }
+  });
+
+  if(replayBtn){
+    replayBtn.addEventListener('click', ()=>{
+      if(typingTimer) clearTimeout(typingTimer);
+      isTyping = false;
+      typeLetter();
+    });
+  }
+})();
 
 /* ============================================================
    THANK YOU → WHATSAPP

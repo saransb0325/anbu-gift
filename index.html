@@ -949,145 +949,14 @@ footer{ text-align:center; padding:40px 20px 60px; color:var(--text-lo); font-fa
 
 
 
-/* ============ 3D SCROLL EXPERIENCE ============ */
-.story-3d-section{
-  position:relative; width:100%; height:400vh;
-  z-index:2;
-}
-.story-sticky{
-  position:sticky; top:0; left:0; width:100%; height:100vh; height:100dvh;
-  overflow:hidden; display:flex; align-items:center; justify-content:center;
-}
-.story-canvas{
-  position:absolute; inset:0; width:100%; height:100%; z-index:1;
-  pointer-events:none;
-}
-.story-ui-layer{
-  position:absolute; inset:0; z-index:2; pointer-events:none;
-  display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
-  padding: env(safe-area-inset-top, 30px) 20px env(safe-area-inset-bottom, 30px) 20px;
-}
-.story-scene-ui{
-  position:absolute; top:clamp(40px, 8vh, 80px); left:0; right:0;
-  display:flex; flex-direction:column; align-items:center; text-align:center;
-  padding:0 20px; opacity:0; transform:translateY(18px);
-  transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1), transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-  pointer-events:none;
-}
-.story-scene-ui.active{
-  opacity:1; transform:translateY(0); pointer-events:auto;
-}
-.story-title{
-  font-family:var(--sans); font-size:clamp(30px, 7.5vw, 46px); font-weight:600;
-  color:#fff; line-height:1.2; text-shadow:0 2px 24px rgba(10,13,46,0.65);
-}
-.story-accent{
-  font-family:var(--serif); font-style:italic; font-weight:700;
-  color:var(--pink-soft, #ffb3cc);
-  text-shadow:0 0 20px rgba(255, 93, 143, 0.5);
-}
-.story-sub{
-  font-size:14px; color:var(--text-lo); margin-top:8px; max-width:380px;
-  text-shadow:0 1px 8px rgba(4,6,28,0.5);
-}
-.story-sub-name{
-  font-family:'Dancing Script', cursive; font-size:clamp(36px, 9vw, 54px);
-  color:var(--gold, #ffd166); font-weight:700;
-  text-shadow:0 0 22px rgba(255, 209, 102, 0.7);
-  margin-top:4px;
-}
-.story-candle-btn{
-  pointer-events:auto; position:fixed; bottom:clamp(75px, 12vh, 100px); left:50%;
-  transform:translateX(-50%);
-  background:linear-gradient(135deg, #a7f3d0, #34d399); color:#064e3b;
-  font-weight:600; font-size:15px; border-radius:999px; padding:13px 32px;
-  box-shadow:0 0 25px rgba(52, 211, 153, 0.5), inset 0 1px 0 rgba(255,255,255,0.6);
-  border:none; cursor:pointer; z-index:10;
-  transition: transform 0.3s var(--ease-spring), box-shadow 0.3s ease, background 0.3s ease, opacity 0.4s ease;
-  white-space:nowrap;
-}
-.story-candle-btn:hover{
-  transform:translateX(-50%) translateY(-2px) scale(1.03);
-  box-shadow:0 0 35px rgba(52, 211, 153, 0.75), inset 0 1px 0 rgba(255,255,255,0.8);
-}
-.story-candle-btn.blown{
-  background:linear-gradient(135deg, rgba(255,255,255,0.2), rgba(255,255,255,0.08));
-  color:#a7f3d0; box-shadow:0 0 18px rgba(167, 243, 208, 0.3);
-  pointer-events:none;
-}
-.story-candle-btn.pulse-attract{
-  animation: candleAttract 1.4s ease-in-out infinite;
-}
-@keyframes candleAttract{
-  0%,100%{ transform:translateX(-50%) scale(1); box-shadow:0 0 20px rgba(52, 211, 153, 0.5); }
-  50%{ transform:translateX(-50%) scale(1.08); box-shadow:0 0 35px rgba(52, 211, 153, 0.85); }
-}
-.story-hint{
-  position:fixed; bottom:clamp(45px, 7vh, 65px); left:50%;
-  transform:translateX(-50%); font-family:var(--mono); font-size:12px;
-  color:#a7f3d0; letter-spacing:0.12em; opacity:0; transition:opacity 0.3s ease;
-  pointer-events:none; z-index:10; white-space:nowrap;
-}
-.story-hint.visible{ opacity:1; }
-.story-scroll-cue{
-  position:fixed; bottom:clamp(28px, 5vh, 45px); left:50%;
-  transform:translateX(-50%); font-family:var(--mono); font-size:11px;
-  letter-spacing:0.3em; color:var(--text-lo);
-  animation: bob 2s ease-in-out infinite; z-index:10; pointer-events:none;
-}
-
-/* Loader */
-.story-loader{
-  position:absolute; inset:0; z-index:20; background:rgba(10, 13, 36, 0.85);
-  backdrop-filter:blur(10px); display:flex; flex-direction:column;
-  align-items:center; justify-content:center; gap:16px;
-  transition: opacity 0.5s ease, visibility 0.5s ease;
-}
-.story-loader.loaded{
-  opacity:0; visibility:hidden; pointer-events:none;
-}
-.story-spinner{
-  width:38px; height:38px; border-radius:50%;
-  border:3px solid rgba(255,255,255,0.15);
-  border-top-color:var(--pink-soft, #ffb3cc);
-  border-right-color:var(--bf-sky, #4fc3f7);
-  animation: storySpin 0.9s linear infinite;
-}
-@keyframes storySpin{ to{ transform:rotate(360deg); } }
-.story-loader-text{
-  font-family:var(--mono); font-size:12px; color:var(--text-lo); letter-spacing:0.1em;
-}
-
-/* Fallback for No-WebGL */
-.story-fallback{
-  display:none; position:relative; width:100%; min-height:100vh;
-  padding:60px 20px; z-index:3;
-}
-.story-3d-section.no-webgl .story-sticky{ display:none !important; }
-.story-3d-section.no-webgl .story-fallback{
-  display:flex; flex-direction:column; align-items:center; gap:40px;
-}
-.story-3d-section.no-webgl{ height:auto; }
-.story-fb-card{
-  width:min(90vw, 420px); padding:36px 24px; text-align:center;
-  background:linear-gradient(145deg, var(--glass-hi), var(--glass-lo));
-  border:1px solid var(--glass-border); border-radius:24px;
-  backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
-}
-.story-fb-emoji{ font-size:54px; margin-bottom:12px; animation: bob 2.5s ease-in-out infinite; }
-
 /* browsers without backdrop-filter get a denser tint so text stays readable */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))){
-  .glass-panel, .hero-wish, .key, .photo-card.placeholder, .story-fb-card{ background:rgba(34,40,92,0.88); }
+  .glass-panel, .hero-wish, .key, .photo-card.placeholder{ background:rgba(34,40,92,0.88); }
 }
 
 @media (prefers-reduced-motion: reduce){
   *, *::before, *::after{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; animation-delay:0s !important; transition-duration:0.01ms !important; transition-delay:0s !important; scroll-behavior:auto !important; }
   .orb, .intro-orb, .bf-wing-left, .bf-wing-right, .firefly, .sparkle-pt, .s2-drifter{ animation:none !important; }
-  .story-3d-section{ height:auto !important; }
-  .story-3d-section .story-sticky{ display:none !important; }
-  .story-3d-section .story-fallback{ display:flex !important; flex-direction:column; align-items:center; gap:40px; }
-  .story-fb-emoji{ animation:none !important; }
 }
 
 @media (max-width:420px){
@@ -1210,76 +1079,6 @@ footer{ text-align:center; padding:40px 20px 60px; color:var(--text-lo); font-fa
 
 <!-- ============ MAIN EXPERIENCE ============ -->
 <div class="stage">
-
-  <!-- ============ 3D SCROLL EXPERIENCE ============ -->
-  <section id="story3d" class="story-3d-section">
-    <!-- Loader -->
-    <div class="story-loader" id="storyLoader">
-      <div class="story-spinner"></div>
-      <div class="story-loader-text">Opening 3D world…</div>
-    </div>
-
-    <!-- Fallback container for no-WebGL or reduced motion -->
-    <div class="story-fallback" id="storyFallback">
-      <div class="story-fb-card">
-        <div class="story-fb-emoji">🎁</div>
-        <h2 class="story-title">Just for <span class="story-accent">you.</span></h2>
-        <p class="story-sub">A special surprise wrapped with love</p>
-      </div>
-      <div class="story-fb-card">
-        <div class="story-fb-emoji">🎈</div>
-        <h2 class="story-title">More <span class="story-accent">joy.</span></h2>
-        <p class="story-sub">Filled with moments that make you smile</p>
-      </div>
-      <div class="story-fb-card">
-        <div class="story-fb-emoji">🎂</div>
-        <h2 class="story-title">Make a <span class="story-accent">wish.</span></h2>
-        <p class="story-sub">Close your eyes, make it count</p>
-        <button class="btn story-candle-btn" id="fbBlowCandlesBtn" style="position:static; transform:none; margin-top:16px;">Blow the candles</button>
-      </div>
-      <div class="story-fb-card">
-        <div class="story-fb-emoji">💗</div>
-        <h2 class="story-title">Happy <span class="story-accent">birthday!</span></h2>
-        <div class="story-sub-name">Papaw</div>
-        <div class="story-scroll-cue" style="position:static; transform:none; margin-top:20px;">↓ scroll down ↓</div>
-      </div>
-    </div>
-
-    <!-- Sticky Full-Screen 3D Viewport -->
-    <div class="story-sticky" id="storySticky">
-      <canvas id="storyCanvas" class="story-canvas"></canvas>
-
-      <!-- Overlay UI with sticky headings -->
-      <div class="story-ui-layer">
-        <!-- Scene 1 Title -->
-        <div class="story-scene-ui active" id="uiScene1">
-          <h2 class="story-title" id="s1MainHead">Just for <span class="story-accent">you.</span></h2>
-          <p class="story-sub" id="s1Sub">A special surprise wrapped with love</p>
-        </div>
-
-        <!-- Scene 2 Title -->
-        <div class="story-scene-ui" id="uiScene2">
-          <h2 class="story-title" id="s2MainHead">More <span class="story-accent">joy.</span></h2>
-          <p class="story-sub" id="s2Sub">Filled with moments that make you smile</p>
-        </div>
-
-        <!-- Scene 3 Title & Candle Button -->
-        <div class="story-scene-ui" id="uiScene3">
-          <h2 class="story-title" id="s3MainHead">Make a <span class="story-accent">wish.</span></h2>
-          <p class="story-sub" id="s3Sub">Close your eyes, make it count</p>
-          <button class="btn story-candle-btn" id="blowCandlesBtn">Blow the candles</button>
-          <div class="story-hint" id="candleHint">tap to blow ✨</div>
-        </div>
-
-        <!-- Scene 4 Title & Papaw Name -->
-        <div class="story-scene-ui" id="uiScene4">
-          <h2 class="story-title" id="s4MainHead">Happy <span class="story-accent">birthday!</span></h2>
-          <div class="story-sub-name" id="s4Name">Papaw</div>
-          <div class="story-scroll-cue" id="s4ScrollCue">↓ scroll down ↓</div>
-        </div>
-      </div>
-    </div>
-  </section>
 
   <section id="hero">
     <div class="hero-eyebrow">A wish, unlocked</div>
@@ -1775,20 +1574,6 @@ const CONFIG_INTRO = {
   });
 })();
 
-window.loadStory3D = function() {
-  if (window._story3dLoaded) return;
-  window._story3dLoaded = true;
-  import('./story3d.js').then(mod => {
-    if (mod.initStory3D) mod.initStory3D();
-  }).catch(err => {
-    console.error('Error loading 3D story:', err);
-    const sec = document.getElementById('story3d');
-    if (sec) sec.classList.add('no-webgl');
-    const loader = document.getElementById('storyLoader');
-    if (loader) loader.classList.add('loaded');
-  });
-};
-
 /* ============================================================
    CONFIG — personalize everything here
    ============================================================ */
@@ -1952,7 +1737,6 @@ const CONFIG = {
     if(entered.length === pinLen){
       if(entered === CONFIG.pin){
         wordsWrap.classList.add('done');
-        if(window.loadStory3D) window.loadStory3D();
         setTimeout(()=>{ lock.classList.add('unlocked'); }, 2400);
       } else {
         setTimeout(shakeFail, 150);
@@ -1976,12 +1760,8 @@ document.getElementById('wishMessage').textContent = CONFIG.wishMessage;
 
 (function(){
   const wrap = document.getElementById('heartWrap');
-  const hero = document.getElementById('hero');
   window.addEventListener('scroll', ()=>{
-    if(!hero || !wrap) return;
-    const heroRect = hero.getBoundingClientRect();
-    const heroOffset = Math.max(0, -heroRect.top);
-    const deg = Math.min(heroOffset / 4, 360);
+    const deg = Math.min(window.scrollY / 6, 360);
     wrap.style.setProperty('--scrollY', deg + 'deg');
   }, { passive:true });
 })();
@@ -2320,17 +2100,12 @@ function launchConfetti(){
       el.classList.add('in');
     });
   }
-  const heroSec = document.getElementById('hero');
-  if(heroSec){
-    const heroIo = new IntersectionObserver((entries)=>{
-      entries.forEach(e=>{
-        if(e.isIntersecting){ playHero(); heroIo.unobserve(e.target); }
-      });
-    }, { threshold: 0.15 });
-    heroIo.observe(heroSec);
-  }
-  if(lock.classList.contains('unlocked') && heroSec && heroSec.getBoundingClientRect().top < window.innerHeight){
-    playHero();
+  if(lock.classList.contains('unlocked')){ playHero(); }
+  else{
+    const mo = new MutationObserver(()=>{
+      if(lock.classList.contains('unlocked')){ mo.disconnect(); playHero(); }
+    });
+    mo.observe(lock, { attributes:true, attributeFilter:['class'] });
   }
 })();
 </script>

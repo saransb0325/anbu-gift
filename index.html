@@ -9,7 +9,7 @@
 <style>
 /* ============================================================
    CONFIG-DRIVEN BIRTHDAY EXPERIENCE
-   Edit values inside the CONFIG object near the bottom <script>
+   Edit values inside the CONFIG object near the bottom script tag
    to personalize: PIN, name, date, quiz, WhatsApp number, photos,
    song file, and the surprise-box password + secret contents.
    ============================================================ */
@@ -37,6 +37,14 @@
   --mono:'JetBrains Mono', monospace;
   --ease-out:cubic-bezier(.22,1,.36,1);
   --ease-spring:cubic-bezier(.34,1.56,.64,1);
+
+  /* ============ BLUE BUTTERFLY & INTRO PALETTE ============ */
+  --bf-sky: #4fc3f7;
+  --bf-mid: #2979ff;
+  --bf-deep: #1565c0;
+  --bf-glow: rgba(79, 195, 247, 0.80);
+  --bf-glow-soft: rgba(41, 121, 255, 0.40);
+  --jar-glow: rgba(41, 121, 255, 0.50);
 }
 
 *{box-sizing:border-box; margin:0; padding:0;}
@@ -347,21 +355,401 @@ section{
 @keyframes pop{ 0%{ transform:scale(0); } 60%{ transform:scale(1.2); } 100%{ transform:scale(1); } }
 .quiz-msg{ margin-top:14px; font-size:13px; color:var(--text-lo); min-height:18px; }
 
-/* ============ COUNTDOWN ============ */
-.countdown-ring{ width:min(92vw,380px); padding:38px 22px; text-align:center; }
-.timer{
-  display:flex; gap:8px; justify-content:center; margin: 20px 0 10px 0; font-family:var(--mono);
+/* ============ INTRO OVERLAY & SCENES ============ */
+.intro-overlay{
+  position:fixed; inset:0; z-index:100;
+  background: radial-gradient(circle at 50% 30%, #1c0f38 0%, #0e0720 55%, #070412 100%);
+  display:flex; align-items:center; justify-content:center;
+  overflow:hidden;
+  transition: opacity 0.8s var(--ease-out), filter 0.8s var(--ease-out), transform 0.8s var(--ease-out);
+  touch-action: manipulation;
 }
-.timer .unit{
-  flex:1; min-width:0; display:flex; flex-direction:column; align-items:center;
-  padding:14px 4px 10px; border-radius:18px;
-  background:linear-gradient(160deg, rgba(255,255,255,0.16), rgba(255,255,255,0.04));
-  border:1px solid rgba(255,255,255,0.20);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 6px 18px rgba(4,6,28,0.25);
+.intro-overlay.hidden{
+  opacity:0; filter:blur(16px); transform:scale(1.05);
+  pointer-events:none; visibility:hidden;
 }
-.timer .num{ font-size:clamp(26px,6vw,38px); font-weight:600; color:var(--gold); text-shadow:0 0 18px rgba(255,209,102,0.45); }
-.timer .lab{ font-size:10px; letter-spacing:0.2em; color:var(--text-lo); margin-top:4px; }
-.timer-status{ font-family:var(--mono); font-size:12px; color:var(--text-lo); margin-top:14px; }
+
+/* Intro Aurora Orbs */
+.intro-bg-aurora{
+  position:absolute; inset:0; pointer-events:none; z-index:0; overflow:hidden;
+}
+.intro-orb{
+  position:absolute; border-radius:50%; filter:blur(40px); opacity:0.25;
+  animation: introDrift 18s ease-in-out infinite alternate;
+}
+.io-1{ width:50vmax; height:50vmax; left:-10vmax; top:-15vmax;
+  background:radial-gradient(circle, #ff5d8f 0%, rgba(255,93,143,0) 70%); }
+.io-2{ width:48vmax; height:48vmax; right:-15vmax; bottom:-10vmax;
+  background:radial-gradient(circle, #8b7cf6 0%, rgba(139,124,246,0) 70%);
+  animation-duration:22s; animation-direction:alternate-reverse; }
+.io-3{ width:40vmax; height:40vmax; left:30%; top:30%;
+  background:radial-gradient(circle, rgba(79,195,247,0.35) 0%, rgba(79,195,247,0) 70%);
+  animation-duration:15s; }
+@keyframes introDrift{
+  0%{ transform:translate3d(0,0,0) scale(1); }
+  100%{ transform:translate3d(5vmax,4vmax,0) scale(1.15); }
+}
+
+/* Scene container */
+.intro-scene{
+  position:absolute; inset:0;
+  display:none; flex-direction:column; align-items:center; justify-content:center;
+  padding: env(safe-area-inset-top, 20px) 20px env(safe-area-inset-bottom, 20px) 20px;
+  z-index:2; opacity:0;
+  transition: opacity 0.5s cubic-bezier(0.22, 1, 0.36, 1), transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translateY(12px) scale(0.98);
+}
+.intro-scene.active{
+  display:flex; opacity:1; transform:none;
+}
+.intro-scene.fade-out{
+  opacity:0; transform: translateY(-12px) scale(1.02); pointer-events:none;
+}
+
+.intro-card{
+  width:min(90vw, 420px);
+  padding:36px 26px;
+  text-align:center;
+  box-shadow: 0 16px 40px rgba(4, 6, 28, 0.6), inset 0 1px 0 rgba(255,255,255,0.45);
+}
+
+.intro-eyebrow{
+  display:inline-block; font-family:var(--mono); letter-spacing:0.3em;
+  text-transform:uppercase; font-size:11px; color:var(--pink-soft);
+  padding:6px 14px; border-radius:999px;
+  background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.20);
+  margin-bottom:18px;
+}
+.intro-title{
+  font-family:var(--serif); font-size:clamp(22px, 5.5vw, 30px);
+  font-weight:600; font-style:italic; line-height:1.35; margin-bottom:20px;
+  color:#fff; text-shadow:0 2px 20px rgba(10,13,46,0.6);
+}
+.intro-sub{
+  font-size:14px; color:var(--text-lo); line-height:1.6; margin-top:16px;
+}
+
+/* Scene 1: Digital Clock */
+.intro-clock-wrap{
+  margin:20px 0 10px 0;
+  padding:16px 22px; border-radius:20px;
+  background:linear-gradient(145deg, rgba(255,255,255,0.12), rgba(255,255,255,0.03));
+  border:1px solid rgba(255,255,255,0.22);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,0.3), 0 8px 24px rgba(4,6,28,0.3);
+  display:inline-block;
+}
+.intro-digital-clock{
+  font-family:var(--mono); font-size:clamp(34px, 9vw, 48px); font-weight:700;
+  letter-spacing:0.06em; color:#fff;
+  text-shadow:0 0 18px var(--bf-sky), 0 0 35px var(--bf-mid);
+  transition: all 0.3s ease;
+}
+.intro-digital-clock.midnight-strike{
+  color:var(--gold);
+  text-shadow:0 0 25px var(--gold), 0 0 50px rgba(255, 209, 102, 0.8), 0 0 75px var(--bf-sky);
+  transform:scale(1.08);
+}
+
+/* Scene 2: Hey my Love */
+.intro-script-title{
+  font-family:'Dancing Script', cursive; font-size:clamp(36px, 9vw, 48px);
+  color:#fff; font-weight:600; margin-bottom:14px;
+  text-shadow:0 2px 18px rgba(255,93,143,0.5);
+}
+.intro-question{
+  font-size:clamp(17px, 4.5vw, 21px); font-weight:500; color:var(--text-hi);
+  margin-bottom:30px;
+}
+.intro-btn-row{
+  display:flex; justify-content:center; align-items:center; gap:20px;
+  min-height:56px; position:relative;
+}
+.intro-btn-yes{
+  min-width:110px; font-size:16px; font-weight:600;
+}
+.intro-btn-no{
+  min-width:90px; font-size:15px; position:relative;
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+  user-select:none; -webkit-user-select:none;
+}
+.floating-butterflies-bg{
+  position:absolute; inset:0; pointer-events:none; z-index:1; overflow:hidden;
+}
+
+/* Butterfly SVG & Wing Flapping */
+.bf-svg{
+  overflow:visible; display:inline-block; vertical-align:middle;
+  filter:drop-shadow(0 0 8px var(--bf-glow)) drop-shadow(0 0 16px var(--bf-glow-soft));
+  user-select:none;
+}
+.bf-wing-left{
+  transform-origin: 35px 30px;
+  animation: bfFlapLeft 0.28s ease-in-out infinite alternate;
+}
+.bf-wing-right{
+  transform-origin: 35px 30px;
+  animation: bfFlapRight 0.28s ease-in-out infinite alternate;
+}
+@keyframes bfFlapLeft{
+  0%{ transform: scaleX(1); }
+  100%{ transform: scaleX(0.18); }
+}
+@keyframes bfFlapRight{
+  0%{ transform: scaleX(1); }
+  100%{ transform: scaleX(0.18); }
+}
+
+/* Floating background butterflies in Scene 2 */
+.s2-drifter{
+  position:absolute; pointer-events:none; opacity:0.85;
+  animation: s2Float 12s ease-in-out infinite alternate;
+}
+@keyframes s2Float{
+  0%{ transform: translate3d(0, 0, 0) rotate(-6deg); }
+  50%{ transform: translate3d(24px, -35px, 0) rotate(8deg); }
+  100%{ transform: translate3d(-18px, -70px, 0) rotate(-4deg); }
+}
+
+/* Scene 3: Catch Butterflies */
+.scene3-header{
+  text-align:center; margin-bottom:10px; z-index:3;
+}
+.intro-scene-title{
+  font-family:var(--serif); font-style:italic; font-size:clamp(22px, 5.5vw, 28px);
+  color:#fff; display:flex; align-items:center; justify-content:center; gap:10px;
+}
+.intro-scene-sub{
+  font-size:13px; color:var(--text-lo); margin-top:4px;
+}
+.inline-bf-icon{
+  display:inline-flex; align-items:center; justify-content:center;
+}
+.butterfly-sky{
+  position:relative; width:min(94vw, 440px); height:220px;
+  margin:4px 0 10px 0; z-index:4;
+}
+.sky-butterfly{
+  position:absolute; cursor:pointer; touch-action:none;
+  padding:14px; margin:-14px; border-radius:50%;
+  transition: transform 0.5s ease-out;
+  will-change: transform;
+}
+.sky-butterfly:active{
+  transform:scale(0.9);
+}
+.sky-butterfly.flying-to-jar{
+  pointer-events:none;
+  transition: transform 0.7s cubic-bezier(0.2, 0.9, 0.3, 1), opacity 0.7s ease;
+  opacity:0.3;
+}
+
+/* Romantic line card in Scene 3 */
+.intro-msg-card{
+  width:min(90vw, 400px); padding:16px 20px; text-align:center;
+  min-height:64px; display:flex; align-items:center; justify-content:center;
+  margin-bottom:12px; z-index:3;
+  transition: transform 0.4s var(--ease-spring), opacity 0.4s ease;
+}
+.intro-msg-text{
+  font-size:15px; font-weight:500; color:#fff; line-height:1.5;
+  text-shadow:0 1px 12px rgba(4,6,28,0.5);
+}
+.intro-msg-text.msg-pop{
+  animation: optpop 0.5s var(--ease-spring);
+}
+
+/* Big Butterfly Card (end of Scene 3) */
+.big-butterfly-card{
+  width:min(90vw, 380px); padding:28px 22px; text-align:center;
+  position:absolute; top:50%; left:50%; transform:translate(-50%, -50%) scale(0.85);
+  opacity:0; pointer-events:none; z-index:10;
+  transition: opacity 0.6s var(--ease-spring), transform 0.6s var(--ease-spring);
+  box-shadow: 0 15px 45px rgba(41, 121, 255, 0.4), inset 0 1px 0 rgba(255,255,255,0.5);
+  border-color: rgba(79, 195, 247, 0.45);
+}
+.big-butterfly-card.active{
+  opacity:1; pointer-events:auto; transform:translate(-50%, -50%) scale(1);
+}
+.big-bf-icon{
+  margin-bottom:14px; display:inline-block;
+  animation: bigBfPulse 2.2s ease-in-out infinite;
+}
+@keyframes bigBfPulse{
+  0%,100%{ transform:scale(1); filter:drop-shadow(0 0 14px var(--bf-glow)); }
+  50%{ transform:scale(1.08); filter:drop-shadow(0 0 26px var(--bf-sky)) drop-shadow(0 0 45px var(--bf-mid)); }
+}
+.big-bf-title{
+  font-family:var(--serif); font-style:italic; font-size:20px; color:#fff;
+  margin-bottom:18px;
+}
+.intro-btn-open{
+  background:linear-gradient(135deg, var(--bf-sky), var(--bf-mid));
+  box-shadow:0 8px 24px var(--bf-glow);
+  font-size:15px; font-weight:600; padding:13px 32px;
+}
+
+/* Glass Jar at bottom */
+.jar-stage{
+  display:flex; flex-direction:column; align-items:center; z-index:3;
+}
+.glass-jar{
+  position:relative; width:96px; height:116px;
+  display:flex; flex-direction:column; align-items:center;
+  transition: transform 0.3s ease;
+}
+.glass-jar.jar-pulse{
+  animation: jarPop 0.5s ease-out;
+}
+@keyframes jarPop{
+  0%{ transform:scale(1); }
+  45%{ transform:scale(1.1); filter:drop-shadow(0 0 20px var(--bf-sky)); }
+  100%{ transform:scale(1); }
+}
+.jar-cork{
+  width:38px; height:8px; border-radius:4px 4px 2px 2px;
+  background:linear-gradient(180deg, #d4a373, #a9714b);
+  border:1px solid rgba(255,255,255,0.3); z-index:2;
+}
+.jar-neck{
+  width:48px; height:9px; border-radius:3px;
+  background:rgba(255,255,255,0.14); border:1px solid rgba(255,255,255,0.3);
+  border-bottom:none; z-index:2;
+}
+.jar-body{
+  position:relative; width:88px; height:98px;
+  border-radius:12px 12px 26px 26px;
+  background:linear-gradient(145deg, rgba(255,255,255,0.18), rgba(255,255,255,0.03));
+  border:1.5px solid rgba(255,255,255,0.35);
+  box-shadow: 0 10px 24px rgba(4,6,28,0.4), inset 0 1px 0 rgba(255,255,255,0.45);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  overflow:hidden;
+}
+.jar-sheen{
+  position:absolute; top:8px; left:8px; width:12px; height:70px;
+  background:linear-gradient(180deg, rgba(255,255,255,0.45), rgba(255,255,255,0.05));
+  border-radius:6px; pointer-events:none;
+}
+.jar-inner-glow{
+  position:absolute; bottom:0; left:0; right:0; height:20%;
+  background:radial-gradient(ellipse at bottom, var(--bf-sky) 0%, var(--jar-glow) 50%, transparent 100%);
+  filter:blur(8px); opacity:0.3; transition: height 0.6s ease, opacity 0.6s ease;
+  pointer-events:none;
+}
+.jar-butterflies{
+  position:absolute; inset:0; pointer-events:none;
+  display:flex; align-items:center; justify-content:center;
+}
+.jar-butterfly-mini{
+  position:absolute; opacity:0.95;
+  animation: jarFlutter 2.8s ease-in-out infinite alternate;
+}
+@keyframes jarFlutter{
+  0%{ transform: translate3d(0, 0, 0) scale(0.65) rotate(-8deg); }
+  50%{ transform: translate3d(8px, -12px, 0) scale(0.7) rotate(6deg); }
+  100%{ transform: translate3d(-6px, -20px, 0) scale(0.65) rotate(-4deg); }
+}
+.jar-counter{
+  font-family:var(--mono); font-size:11px; color:var(--text-lo);
+  letter-spacing:0.1em; margin-top:6px;
+}
+
+/* Scene 4: Birthday Neon Card */
+.intro-neon-card{
+  width:min(90vw, 420px); padding:38px 26px;
+  border:1px solid rgba(255, 93, 143, 0.45);
+  box-shadow: 0 0 35px rgba(255, 93, 143, 0.28), 0 20px 50px rgba(4,6,28,0.6), inset 0 1px 0 rgba(255,255,255,0.4);
+  background: linear-gradient(155deg, rgba(42, 14, 66, 0.65), rgba(15, 7, 30, 0.75));
+  position:relative; z-index:2;
+}
+.neon-script-title{
+  font-family:'Dancing Script', cursive; font-size:clamp(30px, 7.5vw, 40px);
+  color:#fff; line-height:1.25; margin-bottom:16px;
+  text-shadow:0 0 12px rgba(255, 93, 143, 0.8), 0 0 28px rgba(255, 93, 143, 0.45);
+}
+.neon-body-text{
+  font-size:15px; color:var(--text-hi); line-height:1.7; margin-bottom:18px;
+}
+.neon-divider{
+  height:1px; width:75%; margin:18px auto;
+  background:linear-gradient(90deg, transparent, rgba(255, 93, 143, 0.65), transparent);
+}
+.neon-proposal{
+  font-family:var(--serif); font-style:italic; font-size:clamp(18px, 4.8vw, 22px);
+  color:#fff; margin-bottom:6px;
+  text-shadow:0 0 14px rgba(139, 124, 246, 0.6);
+}
+.neon-subtext{
+  font-size:13px; color:var(--pink-soft); margin-bottom:24px; font-style:italic;
+}
+.intro-glow-btn{
+  background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255, 179, 204, 0.85));
+  color:#1a0520; font-weight:600; font-size:16px;
+  box-shadow: 0 0 22px rgba(255, 255, 255, 0.65), 0 6px 18px rgba(255, 93, 143, 0.4);
+  border:none; text-shadow:none;
+}
+.intro-glow-btn:hover{
+  box-shadow: 0 0 32px rgba(255, 255, 255, 0.9), 0 8px 24px rgba(255, 93, 143, 0.6);
+  transform: translateY(-2px) scale(1.03);
+}
+.sparkles-container{
+  position:absolute; inset:0; pointer-events:none; z-index:1; overflow:hidden;
+}
+.sparkle-pt{
+  position:absolute; color:rgba(255, 230, 180, 0.85); font-size:14px;
+  animation: sparkleTwinkle 3.2s ease-in-out infinite;
+}
+@keyframes sparkleTwinkle{
+  0%,100%{ opacity:0.1; transform:scale(0.5); }
+  50%{ opacity:0.95; transform:scale(1.3) rotate(18deg); }
+}
+
+/* Scene 5: Final I Love You */
+.scene5-content{
+  position:relative; z-index:2; display:flex; flex-direction:column;
+  align-items:center; justify-content:center;
+}
+.neon-huge-text{
+  font-family:'Dancing Script', cursive;
+  font-size:clamp(54px, 15vw, 92px);
+  font-weight:700; color:#fff;
+  text-shadow:
+    0 0 18px rgba(255, 93, 143, 0.9),
+    0 0 38px rgba(255, 93, 143, 0.6),
+    0 0 75px rgba(139, 124, 246, 0.55),
+    0 0 100px rgba(255, 93, 143, 0.4);
+  animation: neonBreathe 2.5s ease-in-out infinite;
+  margin-bottom:38px;
+  white-space:nowrap;
+}
+@keyframes neonBreathe{
+  0%,100%{ transform:scale(1); opacity:0.92; }
+  50%{ transform:scale(1.05); opacity:1; filter:brightness(1.15); }
+}
+.fireflies-container{
+  position:absolute; inset:0; pointer-events:none; z-index:1; overflow:hidden;
+}
+.firefly{
+  position:absolute; border-radius:50%; background:#ffd166;
+  box-shadow: 0 0 10px #ffd166, 0 0 20px #ffb703;
+  animation: fireflyRise 6s linear infinite;
+  opacity:0;
+}
+@keyframes fireflyRise{
+  0%{ transform:translate3d(0, 100vh, 0) scale(0.3); opacity:0; }
+  20%{ opacity:0.85; }
+  80%{ opacity:0.75; }
+  100%{ transform:translate3d(var(--drift-x, 20px), -10vh, 0) scale(1); opacity:0; }
+}
+.intro-surprise-btn{
+  font-size:16px; font-weight:600; padding:15px 36px;
+  background:linear-gradient(135deg, var(--pink), var(--violet));
+  box-shadow:0 0 28px rgba(255, 93, 143, 0.55), 0 10px 30px rgba(4,6,28,0.5);
+  opacity:0; pointer-events:none; transform:translateY(14px);
+  transition: opacity 0.8s ease, transform 0.8s var(--ease-spring);
+}
+.intro-surprise-btn.visible{
+  opacity:1; pointer-events:auto; transform:translateY(0);
+}
 
 /* ============ SURPRISE BOX ============ */
 .box-wrap{ width:min(92vw,460px); text-align:center; padding:40px 30px; }
@@ -559,8 +947,7 @@ footer{ text-align:center; padding:40px 20px 60px; color:var(--text-lo); font-fa
 .secret-video{ animation: revealin 0.9s var(--ease-out) backwards; }
 @keyframes revealin{ from{ opacity:0; transform:translateY(16px) scale(0.98); } to{ opacity:1; transform:none; } }
 
-.timer .num.tick{ animation: numtick 0.45s var(--ease-out); }
-@keyframes numtick{ from{ opacity:0.3; transform:translateY(-9px); } to{ opacity:1; transform:none; } }
+
 
 /* browsers without backdrop-filter get a denser tint so text stays readable */
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))){
@@ -569,7 +956,7 @@ footer{ text-align:center; padding:40px 20px 60px; color:var(--text-lo); font-fa
 
 @media (prefers-reduced-motion: reduce){
   *, *::before, *::after{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; animation-delay:0s !important; transition-duration:0.01ms !important; transition-delay:0s !important; scroll-behavior:auto !important; }
-  .orb{ animation:none !important; }
+  .orb, .intro-orb, .bf-wing-left, .bf-wing-right, .firefly, .sparkle-pt, .s2-drifter{ animation:none !important; }
 }
 
 @media (max-width:420px){
@@ -582,6 +969,102 @@ footer{ text-align:center; padding:40px 20px 60px; color:var(--text-lo); font-fa
 <body>
 
 <div class="orbs" aria-hidden="true"><span class="orb o1"></span><span class="orb o2"></span><span class="orb o3"></span><span class="orb o4"></span></div>
+
+<!-- ============ INTRO EXPERIENCE OVERLAY ============ -->
+<div id="introOverlay" class="intro-overlay" aria-live="polite">
+  <div class="intro-bg-aurora" aria-hidden="true">
+    <span class="intro-orb io-1"></span>
+    <span class="intro-orb io-2"></span>
+    <span class="intro-orb io-3"></span>
+  </div>
+
+  <!-- Scene 1: Midnight Countdown -->
+  <div class="intro-scene scene-1 active" id="introScene1">
+    <div class="intro-card glass-panel">
+      <div class="intro-eyebrow">Midnight Magic</div>
+      <h2 class="intro-title" id="s1Title">Wait... something magical happens at midnight</h2>
+      <div class="intro-clock-wrap">
+        <div class="intro-digital-clock" id="introClock">11:59:56</div>
+      </div>
+      <p class="intro-sub" id="s1Caption">Turning the page to your special day ✨</p>
+    </div>
+  </div>
+
+  <!-- Scene 2: Hey my Love -->
+  <div class="intro-scene scene-2" id="introScene2">
+    <div class="floating-butterflies-bg" id="s2Butterflies" aria-hidden="true"></div>
+    <div class="intro-card glass-panel">
+      <h2 class="intro-script-title" id="s2Heading">Hey my Love</h2>
+      <p class="intro-question" id="s2Question">Do you love me? <span id="s2Emoji">💗</span></p>
+      <div class="intro-btn-row">
+        <button class="btn intro-btn-yes" id="s2YesBtn">Yes 💗</button>
+        <button class="btn ghost intro-btn-no" id="s2NoBtn">No</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scene 3: Catch the butterflies -->
+  <div class="intro-scene scene-3" id="introScene3">
+    <div class="scene3-header">
+      <h2 class="intro-scene-title">
+        <span class="inline-bf-icon" id="s3TitleIcon" aria-hidden="true"></span>
+        <span id="s3Title">Catch the butterflies</span>
+      </h2>
+      <p class="intro-scene-sub" id="s3Hint">Tap each butterfly to catch it ✨</p>
+    </div>
+
+    <!-- Sky area where blue butterflies flutter -->
+    <div class="butterfly-sky" id="butterflySky"></div>
+
+    <!-- Romantic line revealed one by one -->
+    <div class="intro-msg-card glass-panel" id="s3MsgCard">
+      <div class="intro-msg-text" id="s3MsgText">Tap a butterfly to catch it…</div>
+    </div>
+
+    <!-- Big Butterfly Card (shown after all caught) -->
+    <div class="big-butterfly-card glass-panel" id="bigButterflyCard">
+      <div class="big-bf-icon" id="bigBfIcon" aria-hidden="true"></div>
+      <div class="big-bf-title">A special wish awaits 💙</div>
+      <button class="btn intro-btn-open" id="bigBfOpenBtn">Tap to open</button>
+    </div>
+
+    <!-- Glass Jar at bottom -->
+    <div class="jar-stage">
+      <div class="glass-jar" id="glassJar">
+        <div class="jar-cork"></div>
+        <div class="jar-neck"></div>
+        <div class="jar-body">
+          <div class="jar-sheen"></div>
+          <div class="jar-inner-glow" id="jarInnerGlow"></div>
+          <div class="jar-butterflies" id="jarButterflies"></div>
+        </div>
+      </div>
+      <div class="jar-counter"><span id="jarCaughtCount">0</span> / <span id="jarTotalCount">3</span> caught</div>
+    </div>
+  </div>
+
+  <!-- Scene 4: Birthday card -->
+  <div class="intro-scene scene-4" id="introScene4">
+    <div class="sparkles-container" id="s4Sparkles" aria-hidden="true"></div>
+    <div class="intro-neon-card glass-panel">
+      <h2 class="neon-script-title" id="s4Title">Happy Birthday Papaw 🎂🧡</h2>
+      <p class="neon-body-text" id="s4Body">You mean more than words can say... and I'm really lucky to have you in my life 🌸</p>
+      <div class="neon-divider"></div>
+      <p class="neon-proposal" id="s4Proposal">So... can we go out tonight? 🌙✨</p>
+      <p class="neon-subtext" id="s4Subtext">Just you, me &amp; the stars 💗</p>
+      <button class="btn intro-glow-btn" id="s4YesBtn">Yes 🤍</button>
+    </div>
+  </div>
+
+  <!-- Scene 5: Final -->
+  <div class="intro-scene scene-5" id="introScene5">
+    <div class="fireflies-container" id="s5Fireflies" aria-hidden="true"></div>
+    <div class="scene5-content">
+      <div class="neon-huge-text" id="s5LoveText">I Love You</div>
+      <button class="btn intro-surprise-btn" id="s5SurpriseBtn">Open your surprise 🎁</button>
+    </div>
+  </div>
+</div>
 
 <!-- ============ LOCK SCREEN ============ -->
 <div id="lock">
@@ -629,19 +1112,6 @@ footer{ text-align:center; padding:40px 20px 60px; color:var(--text-lo); font-fa
     </div>
   </section>
 
-  <section id="countdown">
-    <div class="eyebrow">Almost time</div>
-    <div class="section-title">The surprise unlocks soon</div>
-    <div class="glass-panel countdown-ring">
-      <div class="timer" id="timer">
-        <div class="unit"><div class="num" id="tD">--</div><div class="lab">days</div></div>
-        <div class="unit"><div class="num" id="tH">--</div><div class="lab">hrs</div></div>
-        <div class="unit"><div class="num" id="tM">--</div><div class="lab">min</div></div>
-        <div class="unit"><div class="num" id="tS">--</div><div class="lab">sec</div></div>
-      </div>
-      <div class="timer-status" id="timerStatus">counting down…</div>
-    </div>
-  </section>
 
   <section id="surprise">
     <div class="eyebrow">Sealed &amp; encrypted</div>
@@ -709,6 +1179,402 @@ footer{ text-align:center; padding:40px 20px 60px; color:var(--text-lo); font-fa
 
 <script>
 /* ============================================================
+   INTRO CONFIG — personalize intro text, colors, & messages here
+   ============================================================ */
+const CONFIG_INTRO = {
+  // Blue butterfly palette (sky, mid, deep blues with soft cyan/blue glow)
+  colors: {
+    butterflySky: "#4FC3F7",
+    butterflyMid: "#2979FF",
+    butterflyDeep: "#1565C0",
+    butterflyGlow: "rgba(79, 195, 247, 0.80)",
+    jarGlow: "rgba(41, 121, 255, 0.50)"
+  },
+  // Scene 1: Midnight countdown
+  scene1: {
+    eyebrow: "Midnight Magic",
+    title: "Wait... something magical happens at midnight",
+    caption: "Turning the page to your special day ✨",
+    startClock: "11:59:56",
+    endClock: "12:00:00",
+    durationSec: 5
+  },
+  // Scene 2: Hey my Love
+  scene2: {
+    heading: "Hey my Love",
+    question: "Do you love me? 💗",
+    pleadingEmoji: "🥺",
+    yesBtn: "Yes 💗",
+    noBtn: "No",
+    playSongOnYes: true // Reuses song.mp3 softly on first user tap
+  },
+  // Scene 3: Catch the butterflies
+  scene3: {
+    title: "Catch the butterflies",
+    hint: "Tap each butterfly to catch it ✨",
+    messages: [
+      "I don't say this enough, but I really love you 💗",
+      "But no matter what, I always choose you ❤️",
+      "And today, I just want to see you smile 😊"
+    ],
+    finalCardTitle: "A special wish awaits 💙",
+    finalCardBtn: "Tap to open"
+  },
+  // Scene 4: Birthday card
+  scene4: {
+    title: "Happy Birthday Papaw 🎂🧡",
+    body: "You mean more than words can say... and I'm really lucky to have you in my life 🌸",
+    proposal: "So... can we go out tonight? 🌙✨",
+    subtext: "Just you, me & the stars 💗",
+    yesBtn: "Yes 🤍"
+  },
+  // Scene 5: Final
+  scene5: {
+    loveText: "I Love You",
+    revealDelayMs: 4000,
+    surpriseBtn: "Open your surprise 🎁"
+  }
+};
+
+/* ============================================================
+   INTRO EXPERIENCE CONTROLLER
+   ============================================================ */
+(function initIntro(){
+  const overlay = document.getElementById('introOverlay');
+  if(!overlay) return;
+
+  window.isIntroActive = () => !overlay.classList.contains('hidden') && overlay.style.display !== 'none';
+
+  // Helper: Generates inline SVG blue butterfly (no emoji, fully blue styled with gradients)
+  function getBlueButterflySVG(size, idPrefix = 'bf'){
+    const uid = idPrefix + '_' + Math.random().toString(36).slice(2, 8);
+    const h = Math.round(size * 60 / 70);
+    return `<svg class="bf-svg" viewBox="0 0 70 60" style="width:${size}px; height:${h}px;" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="${uid}_sky" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="var(--bf-sky, #4fc3f7)"/>
+          <stop offset="50%" stop-color="var(--bf-mid, #2979ff)"/>
+          <stop offset="100%" stop-color="var(--bf-deep, #1565c0)"/>
+        </linearGradient>
+        <linearGradient id="${uid}_deep" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="var(--bf-sky, #4fc3f7)"/>
+          <stop offset="60%" stop-color="var(--bf-deep, #1565c0)"/>
+          <stop offset="100%" stop-color="#0d47a1"/>
+        </linearGradient>
+        <filter id="${uid}_glow" x="-30%" y="-30%" width="160%" height="160%">
+          <feDropShadow dx="0" dy="0" stdDeviation="3" flood-color="var(--bf-sky, #4fc3f7)" flood-opacity="0.85"/>
+        </filter>
+      </defs>
+      <g filter="url(#${uid}_glow)">
+        <g class="bf-wing bf-wing-left">
+          <path d="M34 26 C28 12, 12 4, 4 15 C-2 23, 2 34, 18 35 C27 35, 32 30, 34 26 Z" fill="url(#${uid}_sky)"/>
+          <path d="M34 30 C27 33, 9 37, 12 47 C14 53, 24 55, 30 45 C32 41, 33 34, 34 30 Z" fill="url(#${uid}_deep)"/>
+          <path d="M12 18 C18 16, 26 22, 33 26" stroke="rgba(255,255,255,0.7)" stroke-width="0.8" fill="none"/>
+          <circle cx="10" cy="20" r="1.4" fill="#ffffff" opacity="0.9"/>
+          <circle cx="16" cy="46" r="1.2" fill="#ffffff" opacity="0.9"/>
+        </g>
+        <g class="bf-wing bf-wing-right">
+          <path d="M36 26 C42 12, 58 4, 66 15 C72 23, 68 34, 52 35 C43 35, 38 30, 36 26 Z" fill="url(#${uid}_sky)"/>
+          <path d="M36 30 C43 33, 61 37, 58 47 C56 53, 46 55, 40 45 C38 41, 37 34, 36 30 Z" fill="url(#${uid}_deep)"/>
+          <path d="M58 18 C52 16, 44 22, 37 26" stroke="rgba(255,255,255,0.7)" stroke-width="0.8" fill="none"/>
+          <circle cx="60" cy="20" r="1.4" fill="#ffffff" opacity="0.9"/>
+          <circle cx="54" cy="46" r="1.2" fill="#ffffff" opacity="0.9"/>
+        </g>
+        <ellipse cx="35" cy="30" rx="2" ry="12" fill="#e1f5fe"/>
+        <path d="M34 18 Q30 9 24 8" stroke="#80d8ff" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+        <path d="M36 18 Q40 9 46 8" stroke="#80d8ff" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+        <circle cx="24" cy="8" r="1.2" fill="#80d8ff"/>
+        <circle cx="46" cy="8" r="1.2" fill="#80d8ff"/>
+      </g>
+    </svg>`;
+  }
+
+  // Scene switcher
+  function transitionToScene(nextSceneNum){
+    const active = overlay.querySelector('.intro-scene.active');
+    const next = document.getElementById('introScene' + nextSceneNum);
+    if(!next) return;
+    if(active){
+      active.classList.add('fade-out');
+      setTimeout(()=>{
+        active.classList.remove('active', 'fade-out');
+        next.classList.add('active');
+        onSceneEntered(nextSceneNum);
+      }, 480);
+    } else {
+      next.classList.add('active');
+      onSceneEntered(nextSceneNum);
+    }
+  }
+
+  // ================= SCENE 1: Midnight Clock =================
+  const clockEl = document.getElementById('introClock');
+  document.getElementById('s1Title').textContent = CONFIG_INTRO.scene1.title;
+  document.getElementById('s1Caption').textContent = CONFIG_INTRO.scene1.caption;
+
+  const clockSequence = ["11:59:56", "11:59:57", "11:59:58", "11:59:59", "12:00:00"];
+  let clockIndex = 0;
+  clockEl.textContent = clockSequence[0];
+
+  const clockTimer = setInterval(()=>{
+    clockIndex++;
+    if(clockIndex < clockSequence.length){
+      clockEl.textContent = clockSequence[clockIndex];
+      if(clockSequence[clockIndex] === "12:00:00"){
+        clockEl.classList.add('midnight-strike');
+        clearInterval(clockTimer);
+        setTimeout(()=>{ transitionToScene(2); }, 1100);
+      }
+    } else {
+      clearInterval(clockTimer);
+      transitionToScene(2);
+    }
+  }, 1000);
+
+  // ================= SCENE 2: Hey my Love =================
+  const s2ButterfliesBg = document.getElementById('s2Butterflies');
+  document.getElementById('s2Heading').textContent = CONFIG_INTRO.scene2.heading;
+  document.getElementById('s2Question').childNodes[0].nodeValue = CONFIG_INTRO.scene2.question.replace(/💗|🥺/g, '') + ' ';
+  const s2YesBtn = document.getElementById('s2YesBtn');
+  const s2NoBtn = document.getElementById('s2NoBtn');
+  s2YesBtn.textContent = CONFIG_INTRO.scene2.yesBtn;
+  s2NoBtn.textContent = CONFIG_INTRO.scene2.noBtn;
+
+  // Floating blue background butterflies in Scene 2
+  for(let i = 0; i < 5; i++){
+    const drifter = document.createElement('div');
+    drifter.className = 's2-drifter';
+    drifter.innerHTML = getBlueButterflySVG(38 + (i % 3) * 8, 's2bg_' + i);
+    drifter.style.left = (8 + (i * 22) + (Math.random() * 8)) + '%';
+    drifter.style.top = (15 + (i * 16) + (Math.random() * 10)) + '%';
+    drifter.style.animationDelay = (i * 1.8) + 's';
+    drifter.style.animationDuration = (10 + i * 2) + 's';
+    s2ButterfliesBg.appendChild(drifter);
+  }
+
+  let noAttempts = 0;
+  function runawayNo(e){
+    if(e && e.cancelable) e.preventDefault();
+    noAttempts++;
+    const emojiEl = document.getElementById('s2Emoji');
+    if(emojiEl) emojiEl.textContent = CONFIG_INTRO.scene2.pleadingEmoji;
+    const angle = Math.random() * Math.PI * 2;
+    const distance = 45 + Math.random() * 45;
+    const dx = Math.cos(angle) * distance;
+    const dy = Math.sin(angle) * distance;
+    const scale = Math.max(0.42, 1 - noAttempts * 0.12);
+    s2NoBtn.style.transform = `translate3d(${dx}px, ${dy}px, 0) scale(${scale})`;
+  }
+  s2NoBtn.addEventListener('pointerenter', runawayNo);
+  s2NoBtn.addEventListener('touchstart', runawayNo, { passive:false });
+
+  s2YesBtn.addEventListener('click', ()=>{
+    if(CONFIG_INTRO.scene2.playSongOnYes){
+      const song = document.getElementById('wishSong');
+      if(song && song.paused){
+        song.volume = 0.5;
+        song.play().catch(()=>{});
+      }
+    }
+    transitionToScene(3);
+  });
+
+  // ================= SCENE 3: Catch Butterflies =================
+  document.getElementById('s3TitleIcon').innerHTML = getBlueButterflySVG(26, 's3title');
+  document.getElementById('s3Title').textContent = CONFIG_INTRO.scene3.title;
+  document.getElementById('s3Hint').textContent = CONFIG_INTRO.scene3.hint;
+  document.getElementById('bigBfIcon').innerHTML = getBlueButterflySVG(92, 'bigbf');
+  document.getElementById('bigBfOpenBtn').textContent = CONFIG_INTRO.scene3.finalCardBtn;
+
+  const skyEl = document.getElementById('butterflySky');
+  const jarEl = document.getElementById('glassJar');
+  const jarButterflies = document.getElementById('jarButterflies');
+  const jarCaughtCount = document.getElementById('jarCaughtCount');
+  const jarTotalCount = document.getElementById('jarTotalCount');
+  const jarInnerGlow = document.getElementById('jarInnerGlow');
+  const msgCard = document.getElementById('s3MsgCard');
+  const msgText = document.getElementById('s3MsgText');
+  const bigBfCard = document.getElementById('bigButterflyCard');
+  const bigBfOpenBtn = document.getElementById('bigBfOpenBtn');
+
+  const totalMessages = CONFIG_INTRO.scene3.messages.length;
+  jarTotalCount.textContent = totalMessages;
+  let caughtCount = 0;
+  let skyButterflies = [];
+
+  function spawnSkyButterflies(){
+    skyEl.innerHTML = '';
+    skyButterflies = [];
+    const skyW = skyEl.clientWidth || 340;
+    const skyH = skyEl.clientHeight || 220;
+
+    for(let i = 0; i < totalMessages; i++){
+      const bfWrap = document.createElement('div');
+      bfWrap.className = 'sky-butterfly';
+      bfWrap.innerHTML = getBlueButterflySVG(52, 'sky_' + i);
+      let posX = 30 + (i * ((skyW - 80) / Math.max(1, totalMessages - 1)));
+      let posY = 35 + (i % 2 === 0 ? 20 : 90);
+      bfWrap.style.transform = `translate3d(${posX}px, ${posY}px, 0)`;
+      skyEl.appendChild(bfWrap);
+
+      const bfObj = {
+        el: bfWrap,
+        x: posX,
+        y: posY,
+        caught: false,
+        timer: null
+      };
+
+      // Gentle random wandering
+      function wander(){
+        if(bfObj.caught) return;
+        const targetX = 20 + Math.random() * (skyW - 70);
+        const targetY = 15 + Math.random() * (skyH - 70);
+        const rot = (Math.random() - 0.5) * 30;
+        bfObj.x = targetX;
+        bfObj.y = targetY;
+        bfWrap.style.transform = `translate3d(${targetX}px, ${targetY}px, 0) rotate(${rot}deg)`;
+        bfObj.timer = setTimeout(wander, 1600 + Math.random() * 1200);
+      }
+      bfObj.timer = setTimeout(wander, 600 + i * 400);
+
+      // Catch click
+      bfWrap.addEventListener('pointerdown', (e)=>{
+        if(bfObj.caught) return;
+        bfObj.caught = true;
+        clearTimeout(bfObj.timer);
+
+        // Fly smoothly to jar
+        const skyRect = skyEl.getBoundingClientRect();
+        const jarRect = jarEl.getBoundingClientRect();
+        const currentBfRect = bfWrap.getBoundingClientRect();
+
+        const curX = currentBfRect.left - skyRect.left;
+        const curY = currentBfRect.top - skyRect.top;
+        const targetX = (jarRect.left + jarRect.width / 2) - skyRect.left - 25;
+        const targetY = (jarRect.top + 15) - skyRect.top - 20;
+
+        bfWrap.classList.add('flying-to-jar');
+        bfWrap.style.transform = `translate3d(${targetX}px, ${targetY}px, 0) scale(0.35)`;
+
+        setTimeout(()=>{
+          bfWrap.remove();
+          caughtCount++;
+          jarCaughtCount.textContent = caughtCount;
+
+          // Add mini fluttering butterfly inside jar
+          const miniBf = document.createElement('div');
+          miniBf.className = 'jar-butterfly-mini';
+          miniBf.innerHTML = getBlueButterflySVG(24, 'mini_' + caughtCount);
+          miniBf.style.left = (15 + (caughtCount * 22) % 60) + '%';
+          miniBf.style.top = (25 + (caughtCount * 18) % 45) + '%';
+          jarButterflies.appendChild(miniBf);
+
+          // Pulse jar & expand inner blue glow
+          jarEl.classList.remove('jar-pulse');
+          void jarEl.offsetWidth;
+          jarEl.classList.add('jar-pulse');
+          jarInnerGlow.style.height = (25 + caughtCount * 24) + '%';
+          jarInnerGlow.style.opacity = (0.35 + caughtCount * 0.2);
+
+          // Reveal romantic line
+          const msgIdx = caughtCount - 1;
+          msgText.textContent = CONFIG_INTRO.scene3.messages[msgIdx] || "";
+          msgText.classList.remove('msg-pop');
+          void msgText.offsetWidth;
+          msgText.classList.add('msg-pop');
+
+          // If all caught, reveal big butterfly card
+          if(caughtCount >= totalMessages){
+            setTimeout(()=>{
+              msgCard.style.opacity = '0';
+              skyEl.style.opacity = '0';
+              setTimeout(()=>{
+                msgCard.style.display = 'none';
+                skyEl.style.display = 'none';
+                bigBfCard.classList.add('active');
+              }, 400);
+            }, 1200);
+          }
+        }, 650);
+      });
+
+      skyButterflies.push(bfObj);
+    }
+  }
+
+  bigBfOpenBtn.addEventListener('click', ()=>{
+    transitionToScene(4);
+  });
+
+  // ================= SCENE 4: Birthday Card =================
+  document.getElementById('s4Title').textContent = CONFIG_INTRO.scene4.title;
+  document.getElementById('s4Body').textContent = CONFIG_INTRO.scene4.body;
+  document.getElementById('s4Proposal').textContent = CONFIG_INTRO.scene4.proposal;
+  document.getElementById('s4Subtext').textContent = CONFIG_INTRO.scene4.subtext;
+  const s4YesBtn = document.getElementById('s4YesBtn');
+  s4YesBtn.textContent = CONFIG_INTRO.scene4.yesBtn;
+
+  // Sparkles
+  const sparklesWrap = document.getElementById('s4Sparkles');
+  const sparkleSymbols = ['✦', '✧', '⋆', '•'];
+  for(let i = 0; i < 18; i++){
+    const sp = document.createElement('span');
+    sp.className = 'sparkle-pt';
+    sp.textContent = sparkleSymbols[i % sparkleSymbols.length];
+    sp.style.left = (5 + Math.random() * 90) + '%';
+    sp.style.top = (5 + Math.random() * 90) + '%';
+    sp.style.fontSize = (10 + Math.random() * 12) + 'px';
+    sp.style.animationDelay = (Math.random() * 3) + 's';
+    sp.style.animationDuration = (2.2 + Math.random() * 2) + 's';
+    sparklesWrap.appendChild(sp);
+  }
+
+  s4YesBtn.addEventListener('click', ()=>{
+    transitionToScene(5);
+  });
+
+  // ================= SCENE 5: Final I Love You =================
+  document.getElementById('s5LoveText').textContent = CONFIG_INTRO.scene5.loveText;
+  const s5SurpriseBtn = document.getElementById('s5SurpriseBtn');
+  s5SurpriseBtn.textContent = CONFIG_INTRO.scene5.surpriseBtn;
+
+  // Rising golden fireflies
+  const firefliesWrap = document.getElementById('s5Fireflies');
+  for(let i = 0; i < 22; i++){
+    const ff = document.createElement('span');
+    ff.className = 'firefly';
+    const sz = 3 + Math.random() * 5;
+    ff.style.width = ff.style.height = sz + 'px';
+    ff.style.left = (5 + Math.random() * 90) + '%';
+    ff.style.setProperty('--drift-x', ((Math.random() - 0.5) * 80) + 'px');
+    ff.style.animationDelay = (Math.random() * 5) + 's';
+    ff.style.animationDuration = (4.5 + Math.random() * 3) + 's';
+    firefliesWrap.appendChild(ff);
+  }
+
+  function onSceneEntered(num){
+    if(num === 3){
+      setTimeout(spawnSkyButterflies, 200);
+    }
+    if(num === 5){
+      setTimeout(()=>{
+        s5SurpriseBtn.classList.add('visible');
+      }, CONFIG_INTRO.scene5.revealDelayMs);
+    }
+  }
+
+  // Final handover: fades out intro, reveals PIN screen
+  s5SurpriseBtn.addEventListener('click', ()=>{
+    if(typeof launchConfetti === 'function') launchConfetti();
+    overlay.classList.add('hidden');
+    setTimeout(()=>{
+      overlay.style.display = 'none';
+    }, 850);
+  });
+})();
+
+/* ============================================================
    CONFIG — personalize everything here
    ============================================================ */
 const CONFIG = {
@@ -732,11 +1598,6 @@ const CONFIG = {
 
   // WhatsApp number to receive her thank-you note, digits only with country code (no + or spaces)
   whatsappNumber: "917806915163",
-
-  // Countdown target — the exact moment the surprise box unlocks (local time, ISO format)
-  targetDateTime: "2026-09-01T00:00:00",
-  // When the countdown section becomes "live" / visually active
-  timerActiveFrom: "2026-08-31T23:00:00",
 
   // Photo memories — replace src with your own hosted image paths (e.g. assets/photo1.jpg)
   photos: [
@@ -884,6 +1745,7 @@ const CONFIG = {
   }
 
   document.addEventListener('keydown', (e)=>{
+    if(window.isIntroActive && window.isIntroActive()) return;
     if(lock.classList.contains('unlocked')) return;
     if(/^[0-9]$/.test(e.key)) onKey(e.key);
     if(e.key === 'Backspace') onKey('back');
@@ -1013,44 +1875,7 @@ document.getElementById('wishMessage').textContent = CONFIG.wishMessage;
   });
 })();
 
-/* ============================================================
-   COUNTDOWN
-   ============================================================ */
-(function(){
-  const target = new Date(CONFIG.targetDateTime).getTime();
-  const activeFrom = new Date(CONFIG.timerActiveFrom).getTime();
-  const tD=document.getElementById('tD'), tH=document.getElementById('tH'),
-        tM=document.getElementById('tM'), tS=document.getElementById('tS'),
-        status=document.getElementById('timerStatus');
 
-  function tick(){
-    const now = Date.now();
-    if(now < activeFrom){
-      status.textContent = "the countdown begins at 11:00 PM";
-      tD.textContent=tH.textContent=tM.textContent=tS.textContent="--";
-      return;
-    }
-    const diff = target - now;
-    if(diff <= 0){
-      tD.textContent=tH.textContent=tM.textContent=tS.textContent="00";
-      status.textContent = "it's time — the surprise box is open below ↓";
-      document.getElementById('unlockBoxBtn').dataset.timeReady = "1";
-      return;
-    }
-    document.getElementById('unlockBoxBtn').dataset.timeReady = "0";
-    const d = Math.floor(diff/86400000);
-    const h = Math.floor(diff%86400000/3600000);
-    const m = Math.floor(diff%3600000/60000);
-    const s = Math.floor(diff%60000/1000);
-    tD.textContent = String(d).padStart(2,'0');
-    tH.textContent = String(h).padStart(2,'0');
-    tM.textContent = String(m).padStart(2,'0');
-    tS.textContent = String(s).padStart(2,'0');
-    status.textContent = "counting down to your moment…";
-  }
-  tick();
-  setInterval(tick, 1000);
-})();
 
 /* ============================================================
    SURPRISE BOX — real client-side AES-GCM encryption,
@@ -1231,21 +2056,11 @@ function launchConfetti(){
 })();
 
 /* ============================================================
-   MOTION — scroll reveals, hero entrance after unlock, ticking digits
+   MOTION — scroll reveals, hero entrance after unlock
    ============================================================ */
 (function(){
   const lock = document.getElementById('lock');
   const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  // countdown digits tick in softly whenever their value changes
-  document.querySelectorAll('.timer .num').forEach(el=>{
-    el.dataset.v = el.textContent;
-    new MutationObserver(()=>{
-      if(el.textContent === el.dataset.v) return;
-      el.dataset.v = el.textContent;
-      el.classList.remove('tick'); void el.offsetWidth; el.classList.add('tick');
-    }).observe(el, { childList:true, characterData:true, subtree:true });
-  });
 
   // if reveals can't run, leave everything visible
   if(reduce || !('IntersectionObserver' in window)) return;

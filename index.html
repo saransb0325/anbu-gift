@@ -1078,8 +1078,8 @@ footer{ text-align:center; padding:40px 20px 60px; color:var(--text-lo); font-fa
 </div>
 
 <!-- ============ INTRO BACKGROUND MUSIC ============ -->
-<audio id="introBgm" loop preload="auto">
-  <source src="intro.mp3?v=2" type="audio/mpeg">
+<audio id="introBgm" src="intro.mp3?v=3" loop preload="auto">
+  <source src="intro.mp3?v=3" type="audio/mpeg">
 </audio>
 
 <!-- ============ MAIN EXPERIENCE ============ -->
@@ -1241,11 +1241,75 @@ const CONFIG_INTRO = {
 };
 
 /* ============================================================
+   INTRO BACKGROUND MUSIC CONTROLLER (intro.mp3?v=3)
+   - Screen 1: "Midnight Magic" countdown -> starts introBgm (vol ~0.6)
+     with immediate autoplay attempt, falling back to one-time user
+     gesture listeners (touchstart, click, pointerdown, keydown)
+   - Screen 2: "I Love You" + "Open your surprise 🎁" (Scene 5) ->
+     smoothly fades volume to 0 over ~1.5s, pauses, and resets currentTime to 0.
+   ============================================================ */
+function startIntroBgm(){
+  const bgm = document.getElementById('introBgm');
+  if(!bgm || bgm.dataset.stopped === "1") return;
+  bgm.volume = 0.6;
+  const playPromise = bgm.play();
+  if(playPromise !== undefined){
+    playPromise.catch(()=>{
+      // Browser blocked autoplay without gesture: start on first touch/click/key
+      const events = ['touchstart', 'click', 'pointerdown', 'keydown'];
+      function onFirstUserGesture(){
+        events.forEach(ev => document.removeEventListener(ev, onFirstUserGesture, true));
+        if(bgm.dataset.stopped !== "1"){
+          bgm.volume = 0.6;
+          bgm.play().catch(()=>{});
+        }
+      }
+      events.forEach(ev => document.addEventListener(ev, onFirstUserGesture, { once: true, capture: true }));
+    });
+  }
+}
+
+function stopIntroBgm(){
+  const bgm = document.getElementById('introBgm');
+  if(!bgm || bgm.dataset.stopped === "1") return;
+  bgm.dataset.stopped = "1";
+
+  // If paused or never started (user never interacted), do nothing, no errors
+  if(bgm.paused){
+    bgm.volume = 0;
+    try { bgm.currentTime = 0; } catch(e){}
+    return;
+  }
+
+  // Smooth fade-out over ~1.5 seconds (1500ms)
+  const startVol = bgm.volume;
+  const startTime = performance.now();
+  const duration = 1500;
+
+  function fadeStep(now){
+    const elapsed = now - startTime;
+    const progress = Math.min(1, elapsed / duration);
+    bgm.volume = Math.max(0, startVol * (1 - progress));
+    if(progress < 1){
+      requestAnimationFrame(fadeStep);
+    } else {
+      bgm.pause();
+      bgm.volume = 0;
+      try { bgm.currentTime = 0; } catch(e){}
+    }
+  }
+  requestAnimationFrame(fadeStep);
+}
+
+/* ============================================================
    INTRO EXPERIENCE CONTROLLER
    ============================================================ */
 (function initIntro(){
   const overlay = document.getElementById('introOverlay');
   if(!overlay) return;
+
+  // Start intro background music as soon as Screen 1 (Midnight Magic) is shown
+  startIntroBgm();
 
   window.isIntroActive = () => !overlay.classList.contains('hidden') && overlay.style.display !== 'none';
 
@@ -1295,6 +1359,9 @@ const CONFIG_INTRO = {
 
   // Scene switcher
   function transitionToScene(nextSceneNum){
+    if(nextSceneNum === 5){
+      stopIntroBgm();
+    }
     const active = overlay.querySelector('.intro-scene.active');
     const next = document.getElementById('introScene' + nextSceneNum);
     if(!next) return;
@@ -1555,6 +1622,7 @@ const CONFIG_INTRO = {
       setTimeout(spawnSkyButterflies, 200);
     }
     if(num === 5){
+      stopIntroBgm();
       setTimeout(()=>{
         s5SurpriseBtn.classList.add('visible');
       }, CONFIG_INTRO.scene5.revealDelayMs);
@@ -1629,78 +1697,6 @@ const CONFIG = {
   secretQuestion: "The food I eat a lot ?",
   secretAnswer: "chicken rice"   // case-insensitive
 };
-
-/* ============================================================
-   INTRO BACKGROUND MUSIC CONTROLLER
-   - Plays intro.mp3?v=2 on first PIN unlock (user gesture)
-   - Loops while scrolling through hero, memories, quiz
-   - Smoothly fades out over ~1 second when second PIN/password
-     prompt (#surprise section) appears, and pauses
-   ============================================================ */
-function playIntroBgm(){
-  const bgm = document.getElementById('introBgm');
-  if(!bgm) return;
-  bgm.volume = 0.5;
-  bgm.currentTime = 0;
-  delete bgm.dataset.faded;
-  bgm.play().catch(()=>{});
-}
-
-function fadeAndStopIntroBgm(){
-  const bgm = document.getElementById('introBgm');
-  if(!bgm || bgm.paused || bgm.dataset.faded === "1") return;
-  bgm.dataset.faded = "1";
-  const startVol = bgm.volume;
-  const startTime = performance.now();
-  const duration = 1000;
-  function step(now){
-    const elapsed = now - startTime;
-    const progress = Math.min(1, elapsed / duration);
-    bgm.volume = Math.max(0, startVol * (1 - progress));
-    if(progress < 1){
-      requestAnimationFrame(step);
-    } else {
-      bgm.pause();
-      bgm.volume = 0;
-    }
-  }
-  requestAnimationFrame(step);
-}
-
-(function initIntroBgmObserver(){
-  const surpriseSec = document.getElementById('surprise');
-  const boxAnswer = document.getElementById('boxAnswer');
-  const unlockBtn = document.getElementById('unlockBoxBtn');
-
-  if(surpriseSec && 'IntersectionObserver' in window){
-    const obs = new IntersectionObserver((entries)=>{
-      entries.forEach(entry => {
-        if(entry.isIntersecting){
-          fadeAndStopIntroBgm();
-        }
-      });
-    }, { threshold: 0.15, rootMargin: '0px 0px -50px 0px' });
-    obs.observe(surpriseSec);
-  }
-
-  // Fallback scroll listener in case IntersectionObserver has threshold delays
-  window.addEventListener('scroll', ()=>{
-    if(!surpriseSec) return;
-    const rect = surpriseSec.getBoundingClientRect();
-    if(rect.top < window.innerHeight * 0.85){
-      fadeAndStopIntroBgm();
-    }
-  }, { passive: true });
-
-  // Direct interaction fallbacks (if user focused or clicked inside #surprise)
-  if(boxAnswer){
-    boxAnswer.addEventListener('focus', fadeAndStopIntroBgm, { once: true });
-    boxAnswer.addEventListener('input', fadeAndStopIntroBgm, { once: true });
-  }
-  if(unlockBtn){
-    unlockBtn.addEventListener('click', fadeAndStopIntroBgm, { once: true });
-  }
-})();
 
 /* ============================================================
    LOCK SCREEN
@@ -1806,7 +1802,6 @@ function fadeAndStopIntroBgm(){
     if(entered.length === pinLen){
       if(entered === CONFIG.pin){
         wordsWrap.classList.add('done');
-        playIntroBgm();
         setTimeout(()=>{ lock.classList.add('unlocked'); }, 2400);
       } else {
         setTimeout(shakeFail, 150);
@@ -2100,11 +2095,15 @@ function launchConfetti(){
       heartWrap.appendChild(bar);
     }
     heartWrap.addEventListener('click', ()=>{
+      const bgm = document.getElementById('introBgm');
+      if(bgm && !bgm.paused){ bgm.pause(); }
       if(audio.paused){ audio.play().catch(()=>{}); } else { audio.pause(); }
     });
   }
 
   photo.addEventListener('click', ()=>{
+    const bgm = document.getElementById('introBgm');
+    if(bgm && !bgm.paused){ bgm.pause(); }
     if(audio.paused){
       audio.play().catch(()=>{});
     } else {
@@ -2112,6 +2111,8 @@ function launchConfetti(){
     }
   });
   audio.addEventListener('play', ()=>{
+    const bgm = document.getElementById('introBgm');
+    if(bgm && !bgm.paused){ bgm.pause(); }
     photo.classList.add('playing');
     if(viz) viz.classList.add('playing');
   });

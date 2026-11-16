@@ -2226,7 +2226,14 @@ if(document.readyState === 'loading'){
   document.getElementById('s1Title').textContent = CONFIG_INTRO.scene1.title;
   document.getElementById('s1Caption').textContent = CONFIG_INTRO.scene1.caption;
 
-  const clockSequence = ["11:59:56", "11:59:57", "11:59:58", "11:59:59", "12:00:00"];
+  const CLOCK_TICK_MS = 1000;
+  const clockSequence = [];
+  for(let t = 11 * 3600 + 58 * 60; t <= 12 * 3600; t++){
+    const h = String(Math.floor(t / 3600)).padStart(2, '0');
+    const m = String(Math.floor((t % 3600) / 60)).padStart(2, '0');
+    const s = String(t % 60).padStart(2, '0');
+    clockSequence.push(`${h}:${m}:${s}`);
+  }
   let clockIndex = 0;
   clockEl.textContent = clockSequence[0];
 
@@ -2243,7 +2250,7 @@ if(document.readyState === 'loading'){
       clearInterval(clockTimer);
       transitionToScene(2);
     }
-  }, 1000);
+  }, CLOCK_TICK_MS);
 
   // ================= SCENE 2: Hey my Love =================
   const s2ButterfliesBg = document.getElementById('s2Butterflies');
